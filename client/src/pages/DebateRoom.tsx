@@ -11,6 +11,8 @@ import { Link, useParams } from "wouter";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { DebateFlowChart } from "@/components/DebateFlowChart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DebateRoom() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -170,8 +172,15 @@ export default function DebateRoom() {
             </Card>
           </div>
 
-          {/* Main Content - Messages */}
+          {/* Main Content - Tabs for Messages and Flow Chart */}
           <div className="space-y-6">
+            <Tabs defaultValue="messages" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="messages">讨论记录</TabsTrigger>
+                <TabsTrigger value="flowchart">流程图</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="messages" className="space-y-6">
             {!isRunning && !isCompleted && (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -279,6 +288,28 @@ export default function DebateRoom() {
                 </CardContent>
               </Card>
             )}
+              </TabsContent>
+
+              <TabsContent value="flowchart" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>讨论流程可视化</CardTitle>
+                    <CardDescription>
+                      实时展示智能体之间的交互关系和消息传递路径
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[600px] border rounded-lg">
+                      <DebateFlowChart
+                        agents={selectedAgents}
+                        agentStatuses={agentStatuses}
+                        messages={messages}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>
