@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, agents, debateSessions, messages, InsertDebateSession, InsertMessage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +88,57 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Agent queries
+export async function getAllAgents() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agents);
+}
+
+export async function getAgentById(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Debate session queries
+export async function createDebateSession(session: InsertDebateSession) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(debateSessions).values(session);
+  return session;
+}
+
+export async function getDebateSessionById(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(debateSessions).where(eq(debateSessions.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateDebateSession(id: string, updates: Partial<InsertDebateSession>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(debateSessions).set(updates).where(eq(debateSessions.id, id));
+}
+
+export async function getUserDebateSessions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(debateSessions).where(eq(debateSessions.userId, userId)).orderBy(desc(debateSessions.createdAt));
+}
+
+// Message queries
+export async function createMessage(message: InsertMessage) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(messages).values(message);
+  return message;
+}
+
+export async function getSessionMessages(sessionId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(messages).where(eq(messages.sessionId, sessionId)).orderBy(messages.createdAt);
+}

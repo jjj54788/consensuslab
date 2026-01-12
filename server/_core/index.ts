@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { seedAgents } from "../seedAgents";
+import { setupWebSocket } from "../websocket";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -57,8 +59,13 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
+  // Setup WebSocket
+  setupWebSocket(server);
+
+  server.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}/`);
+    // Initialize preset agents
+    await seedAgents();
   });
 }
 
