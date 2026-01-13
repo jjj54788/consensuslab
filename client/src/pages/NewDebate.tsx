@@ -4,9 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -111,39 +110,47 @@ export default function NewDebate() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
-                  {agents?.map((agent) => (
-                    <div
-                      key={agent.id}
-                      className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => handleAgentToggle(agent.id)}
-                    >
-                      <Checkbox
-                        id={agent.id}
-                        checked={selectedAgents.includes(agent.id)}
-                        onCheckedChange={() => {}} 
-                      />
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: agent.color }}
-                          />
-                          <Label
-                            htmlFor={agent.id}
-                            className="text-base font-semibold cursor-pointer"
-                          >
-                            {agent.name}
-                          </Label>
-                          <span className="text-sm text-muted-foreground">
-                            {agent.profile}
-                          </span>
+                  {agents?.map((agent) => {
+                    const isSelected = selectedAgents.includes(agent.id);
+                    return (
+                      <div
+                        key={agent.id}
+                        className={`flex items-start space-x-3 p-4 rounded-lg border transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-primary/10 border-primary"
+                            : "hover:bg-accent/50"
+                        }`}
+                        onClick={() => handleAgentToggle(agent.id)}
+                      >
+                        <div
+                          className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-all ${
+                            isSelected
+                              ? "bg-primary border-primary"
+                              : "border-muted-foreground/30"
+                          }`}
+                        >
+                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {agent.description}
-                        </p>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: agent.color }}
+                            />
+                            <Label className="text-base font-semibold cursor-pointer">
+                              {agent.name}
+                            </Label>
+                            <span className="text-sm text-muted-foreground">
+                              {agent.profile}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {agent.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
