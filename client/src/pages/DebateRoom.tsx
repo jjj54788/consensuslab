@@ -118,6 +118,16 @@ export default function DebateRoom() {
       </header>
 
       <main className="container py-8">
+        {!connected && (
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                正在连接到讨论服务器...
+              </p>
+            </div>
+          </div>
+        )}
         <div className="grid lg:grid-cols-[300px_1fr] gap-6">
           {/* Sidebar - Agent Status */}
           <div className="space-y-4">
@@ -182,15 +192,29 @@ export default function DebateRoom() {
 
               <TabsContent value="messages" className="space-y-6">
             {!isRunning && !isCompleted && (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Play className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">准备开始讨论</h3>
-                  <p className="text-muted-foreground mb-4">
-                    点击右上角的"开始讨论"按钮启动智能体讨论
-                  </p>
-                </CardContent>
-              </Card>
+                          <div className="flex flex-col items-center justify-center py-12 text-center">
+                  {!connected ? (
+                    <>
+                      <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">正在连接...</h3>
+                      <p className="text-sm text-muted-foreground">
+                        请稍候，正在建立实时连接
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-16 w-16 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">准备就绪</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        点击右上角的 <span className="font-semibold text-primary">“开始讨论”</span> 按钮启动智能体讨论
+                      </p>
+                      <Button onClick={startDebate} size="lg">
+                        <Play className="h-5 w-5 mr-2" />
+                        开始讨论
+                      </Button>
+                    </>
+                  )}
+                </div>
             )}
 
             {/* Messages Timeline */}
