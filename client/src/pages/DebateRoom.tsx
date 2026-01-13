@@ -203,7 +203,7 @@ export default function DebateRoom() {
           })}
         </div>
 
-        {/* Split View: Messages + Flow Chart */}
+        {/* Discussion Timeline View */}
         {!isRunning && !isCompleted ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             {!connected ? (
@@ -229,117 +229,20 @@ export default function DebateRoom() {
             )}
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Left: Messages Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle>讨论记录</CardTitle>
-                <CardDescription>实时显示智能体的发言内容</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[700px] pr-4">
-                  <div className="space-y-6">
-                    {messages.map((message, index) => {
-                      const agent = getAgentById(message.sender);
-                      const isLatest = index === messages.length - 1;
-                      
-                      return (
-                        <div 
-                          key={message.id} 
-                          className={`message-enter ${isLatest ? 'animate-in fade-in slide-in-from-bottom-4 duration-500' : ''}`}
-                        >
-                          <div className="flex gap-4">
-                            <div
-                              className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-semibold ${isLatest ? 'ring-2 ring-offset-2' : ''}`}
-                              style={{ 
-                                backgroundColor: agent?.color || "#999"
-                              }}
-                            >
-                              {agent?.name.charAt(0)}
-                            </div>
-                            <div className="flex-1 space-y-2">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">{agent?.name}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  第 {message.round} 轮
-                                </Badge>
-                                {isLatest && (
-                                  <Badge variant="default" className="text-xs">
-                                    最新
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="prose prose-sm max-w-none dark:prose-invert">
-                                <Streamdown>{message.content}</Streamdown>
-                              </div>
-                              {/* Display scores if available */}
-                              {message.totalScore != null && message.totalScore > 0 && (
-                                <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-2">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                                    <span>📊 评分</span>
-                                    <Badge variant="secondary" className="text-xs">
-                                      总分: {(message.totalScore ?? 0).toFixed(1)}/30
-                                    </Badge>
-                                  </div>
-                                  <div className="grid grid-cols-3 gap-2 text-xs">
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-muted-foreground">逻辑:</span>
-                                      <span className="font-semibold text-indigo-600">{message.logicScore?.toFixed(1) || 0}/10</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-muted-foreground">创新:</span>
-                                      <span className="font-semibold text-pink-600">{message.innovationScore?.toFixed(1) || 0}/10</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-muted-foreground">表达:</span>
-                                      <span className="font-semibold text-teal-600">{message.expressionScore?.toFixed(1) || 0}/10</span>
-                                    </div>
-                                  </div>
-                                  {message.scoringReasons && (
-                                    <details className="text-xs">
-                                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">查看评分理由</summary>
-                                      <div className="mt-2 space-y-1 pl-2 border-l-2 border-muted">
-                                        {typeof message.scoringReasons === 'string' ? (
-                                          <p className="text-muted-foreground">{message.scoringReasons}</p>
-                                        ) : (
-                                          <>
-                                            <p><span className="font-semibold text-indigo-600">逻辑:</span> {message.scoringReasons.logic}</p>
-                                            <p><span className="font-semibold text-pink-600">创新:</span> {message.scoringReasons.innovation}</p>
-                                            <p><span className="font-semibold text-teal-600">表达:</span> {message.scoringReasons.expression}</p>
-                                          </>
-                                        )}
-                                      </div>
-                                    </details>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {index < messages.length - 1 && <Separator className="my-6" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            {/* Right: Timeline Visualization */}
-            <Card>
-              <CardHeader>
-                <CardTitle>讨论时间线</CardTitle>
-                <CardDescription>按轮次展示讨论进程</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[700px] pr-4">
-                  <DebateTimeline
-                    messages={messages}
-                    getAgentById={getAgentById}
-                  />
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>讨论时间线</CardTitle>
+              <CardDescription>按轮次展示智能体的讨论进程和评分</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[800px] pr-4">
+                <DebateTimeline
+                  messages={messages}
+                  getAgentById={getAgentById}
+                />
+              </ScrollArea>
+            </CardContent>
+          </Card>
         )}
 
         {/* Highlights Section - Show after completion */}

@@ -185,3 +185,21 @@
 - [x] 编写并行思考机制文档（PARALLEL_THINKING.md）
 - [x] 更新README添加并行思考功能说明
 - [x] 推送更新到GitHub
+
+## WebSocket连接问题修复
+- [ ] 检查前端WebSocket连接配置
+- [ ] 检查后端WebSocket服务器配置
+- [ ] 验证WebSocket URL路径是否正确
+- [ ] 检查CORS和代理配置
+- [ ] 添加WebSocket连接错误日志
+- [ ] 测试WebSocket连接和重连机制
+- [ ] 验证用户可以正常连接到讨论服务器
+
+## 移除React Flow并优化可视化
+- [x] 从package.json移除reactflow和@xyflow依赖
+- [x] 删除DebateFlow组件文件
+- [x] 从DebateRoom页面移除React Flow相关导入和使用
+- [x] 优化时间线视图的布局和样式
+- [x] 测试可视化显示效果
+- [x] 清理未使用的依赖
+- [ ] 推送更新到GitHub
