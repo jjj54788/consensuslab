@@ -5,6 +5,7 @@
 ## 目录
 
 - [环境要求](#环境要求)
+- [Docker 部署（推荐）](#docker-部署推荐)
 - [快速开始](#快速开始)
 - [详细步骤](#详细步骤)
 - [环境变量配置](#环境变量配置)
@@ -49,6 +50,163 @@
 | 内存 | 4GB | 8GB或更高 |
 | 存储 | 2GB可用空间 | 5GB或更高 |
 | 操作系统 | Windows 10/11, macOS 11+, Linux (Ubuntu 20.04+) | 最新稳定版 |
+
+## Docker 部署（推荐）
+
+使用 Docker Compose 是最简单、最快速的部署方式。它会自动配置所有服务（MySQL + 后端 + 前端），无需手动安装依赖和配置环境。
+
+### 优势
+
+- ✅ **一键启动**：无需手动安装 Node.js、pnpm、MySQL
+- ✅ **环境隔离**：不会影响本地其他项目
+- ✅ **跨平台**：在 Windows、macOS、Linux 上表现一致
+- ✅ **易于管理**：简单的命令启动、停止、重启服务
+
+### 前置要求
+
+只需安装 Docker 和 Docker Compose：
+
+- **Docker Desktop** (已包含 Docker Compose)
+  - Windows/macOS: 下载 [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+  - Linux: 安装 [Docker Engine](https://docs.docker.com/engine/install/) + [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 快速启动
+
+**1. 克隆仓库**
+
+```bash
+git clone https://github.com/jjj54788/multi-agent-debate.git
+cd multi-agent-debate
+```
+
+**2. 配置环境变量**
+
+创建 `.env` 文件，填写必需的配置项（详细说明见 [docs/DOCKER_ENV.md](./DOCKER_ENV.md)）：
+
+```bash
+# 最小化配置示例
+DATABASE_URL=mysql://debate_user:your_password@mysql:3306/debate_system
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=debate_system
+MYSQL_USER=debate_user
+MYSQL_PASSWORD=your_password
+JWT_SECRET=your-jwt-secret-key
+BUILT_IN_FORGE_API_KEY=your-manus-api-key
+VITE_FRONTEND_FORGE_API_KEY=your-frontend-api-key
+```
+
+> ⚠️ **安全提示**：请修改所有默认密码为强密码，特别是生产环境。
+
+**3. 一键启动**
+
+使用快捷脚本（推荐）：
+
+```bash
+chmod +x docker-start.sh
+./docker-start.sh
+```
+
+或手动执行命令：
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 等待 MySQL 就绪（约10秒）
+sleep 10
+
+# 初始化数据库表结构
+docker-compose exec app pnpm db:push
+
+# 插入预设智能体数据
+docker-compose exec app tsx scripts/seed-agents.ts
+```
+
+**4. 访问系统**
+
+打开浏览器访问 `http://localhost:3000`
+
+### 常用命令
+
+```bash
+# 查看服务状态
+docker-compose ps
+
+# 查看实时日志
+docker-compose logs -f
+
+# 查看特定服务的日志
+docker-compose logs -f app
+docker-compose logs -f mysql
+
+# 停止服务
+docker-compose down
+
+# 停止并删除数据卷（注意：会删除所有数据）
+docker-compose down -v
+
+# 重启服务
+docker-compose restart
+
+# 重新构建并启动
+docker-compose up -d --build
+
+# 进入应用容器
+docker-compose exec app sh
+
+# 进入 MySQL 容器
+docker-compose exec mysql mysql -u debate_user -p debate_system
+```
+
+### 故障排查
+
+**服务启动失败**
+
+```bash
+# 查看详细错误信息
+docker-compose logs app
+docker-compose logs mysql
+
+# 检查环境变量是否正确
+docker-compose config
+```
+
+**数据库连接失败**
+
+1. 确保 MySQL 容器已启动：`docker-compose ps`
+2. 检查 `DATABASE_URL` 中的主机名是否为 `mysql`（不是 `localhost`）
+3. 检查用户名和密码是否与 `.env` 中的 `MYSQL_USER` 和 `MYSQL_PASSWORD` 一致
+
+**端口被占用**
+
+如果 3306 或 3000 端口已被占用，修改 `docker-compose.yml` 中的端口映射：
+
+```yaml
+services:
+  mysql:
+    ports:
+      - "3307:3306"  # 使用 3307 而不是 3306
+  app:
+    ports:
+      - "3001:3000"  # 使用 3001 而不是 3000
+```
+
+**重置环境**
+
+如果需要完全重置：
+
+```bash
+# 停止并删除所有容器和数据
+docker-compose down -v
+
+# 删除构建缓存
+docker-compose build --no-cache
+
+# 重新启动
+./docker-start.sh
+```
+
+---
 
 ## 快速开始
 

@@ -227,7 +227,71 @@
 
 > 📚 **完整部署指南**: 查看 [DEPLOYMENT.md](./docs/DEPLOYMENT.md) 获取详细的从零开始部署教程，包括环境配置、数据库初始化、常见问题排查等。
 
-### 环境要求
+### ⭐ Docker Compose 快速启动（推荐）
+
+使用 Docker Compose 可以一键启动所有服务（MySQL + 后端 + 前端），无需手动配置环境。
+
+**1. 克隆仓库**
+
+```bash
+git clone https://github.com/jjj54788/multi-agent-debate.git
+cd multi-agent-debate
+```
+
+**2. 配置环境变量**
+
+参考 [docs/DOCKER_ENV.md](./docs/DOCKER_ENV.md) 创建 `.env` 文件，填写必需的配置项：
+
+```bash
+# 最小化配置示例
+DATABASE_URL=mysql://debate_user:your_password@mysql:3306/debate_system
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=debate_system
+MYSQL_USER=debate_user
+MYSQL_PASSWORD=your_password
+JWT_SECRET=your-jwt-secret-key
+BUILT_IN_FORGE_API_KEY=your-manus-api-key
+VITE_FRONTEND_FORGE_API_KEY=your-frontend-api-key
+```
+
+**3. 一键启动**
+
+```bash
+# 使用快捷脚本（推荐）
+chmod +x docker-start.sh
+./docker-start.sh
+
+# 或手动启动
+docker-compose up -d
+docker-compose exec app pnpm db:push
+docker-compose exec app tsx scripts/seed-agents.ts
+```
+
+**4. 访问系统**
+
+打开浏览器访问 `http://localhost:3000`
+
+**常用命令**
+
+```bash
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+
+# 重启服务
+docker-compose restart
+
+# 重新构建
+docker-compose up -d --build
+```
+
+### 💻 本地开发环境
+
+如果不使用 Docker，可以手动配置本地开发环境。
+
+#### 环境要求
 
 - **Node.js** >= 18.0.0
 - **pnpm** >= 8.0.0

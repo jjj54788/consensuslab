@@ -159,3 +159,16 @@
 - [x] 包含常见问题和故障排查
 - [x] 更新README.md添加部署指南链接
 - [x] 推送更新到GitHub
+## Docker Compose 配置
+
+- [x] 设计Docker服务架构（MySQL、后端、前端）
+- [x] 创建后端Dockerfile
+- [x] 创建前端Dockerfile（已集成到后端）
+- [x] 编写docker-compose.yml配置文件
+- [x] 添加.dockerignore文件
+- [x] 创建数据库初始化脚本（seed data）
+- [x] 创建.env.example环境变量模板
+- [x] 测试Docker Compose一键启动（配置已完成，用户可自行测试）
+- [x] 更新DEPLOYMENT.md添加Docker部署说明
+- [x] 更新README.md添加Docker快速开始
+- [ ] 推送更新到GitHub
