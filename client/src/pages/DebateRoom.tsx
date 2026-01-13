@@ -313,40 +313,40 @@ export default function DebateRoom() {
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6">
                 {/* Best Viewpoint */}
-                {completedSession.summary.keyPoints && completedSession.summary.keyPoints.length > 0 && (
+                {(completedSession.summary as any).bestViewpoint && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
                       <TrendingUp className="h-4 w-4" />
                       最佳观点
                     </div>
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm">{completedSession.summary.keyPoints[0]}</p>
+                      <p className="text-sm">{(completedSession.summary as any).bestViewpoint}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Most Innovative */}
-                {completedSession.summary.consensus && (
+                {(completedSession.summary as any).mostInnovative && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400">
                       <Sparkles className="h-4 w-4" />
                       最创新观点
                     </div>
                     <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-sm">{completedSession.summary.consensus}</p>
+                      <p className="text-sm">{(completedSession.summary as any).mostInnovative}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Golden Quote */}
-                {completedSession.summary.disagreements && completedSession.summary.disagreements.length > 0 && (
+                {(completedSession.summary as any).goldenQuotes && (completedSession.summary as any).goldenQuotes.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
                       <Quote className="h-4 w-4" />
                       精彩金句
                     </div>
                     <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <p className="text-sm italic">"{completedSession.summary.disagreements[0]}"</p>
+                      <p className="text-sm italic">"{(completedSession.summary as any).goldenQuotes[0]}"</p>
                     </div>
                   </div>
                 )}

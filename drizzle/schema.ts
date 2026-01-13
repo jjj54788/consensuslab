@@ -71,6 +71,13 @@ export const messages = mysqlTable("messages", {
   content: text("content").notNull(),
   round: int("round").notNull(),
   sentiment: mysqlEnum("sentiment", ["positive", "negative", "neutral"]),
+  // Scoring fields
+  logicScore: int("logicScore"), // 0-10
+  innovationScore: int("innovationScore"), // 0-10
+  expressionScore: int("expressionScore"), // 0-10
+  totalScore: int("totalScore"), // Sum of all scores
+  scoringReasons: json("scoringReasons").$type<{logic?: string, innovation?: string, expression?: string}>(),
+  isHighlight: int("isHighlight").default(0), // 1 if this is a highlight message
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

@@ -29,6 +29,13 @@
       "when": 1768268470463,
       "tag": "0003_secret_sway",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1768269986444,
+      "tag": "0004_solid_true_believers",
+      "breakpoints": true
     }
   ]
 }

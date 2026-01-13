@@ -142,3 +142,9 @@ export async function getSessionMessages(sessionId: string) {
   if (!db) return [];
   return db.select().from(messages).where(eq(messages.sessionId, sessionId)).orderBy(messages.createdAt);
 }
+
+export async function updateMessage(id: string, updates: Partial<InsertMessage>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(messages).set(updates).where(eq(messages.id, id));
+}

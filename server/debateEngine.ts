@@ -1,8 +1,9 @@
 import { nanoid } from "nanoid";
 import { Agent, Message } from "../drizzle/schema";
-import { createMessage, getSessionMessages, updateDebateSession } from "./db";
+import { createMessage, getSessionMessages, updateDebateSession, updateMessage } from "./db";
 import { AIProviderService, AIProviderConfig } from "./aiProviders";
 import { getActiveAIProvider } from "./aiProviderDb";
+import { scoreMessage } from "./scoringEngine";
 
 export type AgentStatus = "idle" | "thinking" | "speaking" | "waiting";
 
@@ -113,12 +114,36 @@ export async function executeDebateRound(
         content,
         round: context.currentRound,
         sentiment: null,
+        logicScore: null,
+        innovationScore: null,
+        expressionScore: null,
+        totalScore: null,
+        scoringReasons: null,
+        isHighlight: 0,
         createdAt: new Date(),
       };
 
       await createMessage(message);
       roundMessages.push(message);
       onMessageCreated?.(message);
+
+      // Score the message asynchronously (don't block the debate flow)
+      scoreMessage(
+        message,
+        { topic: context.topic, previousMessages },
+        userId
+      ).then(async (scores) => {
+        // Update message with scores
+        await updateMessage(message.id, {
+          logicScore: scores.logicScore,
+          innovationScore: scores.innovationScore,
+          expressionScore: scores.expressionScore,
+          totalScore: scores.totalScore,
+          scoringReasons: scores.scoringReasons,
+        });
+      }).catch((error) => {
+        console.error(`[DebateEngine] Error scoring message ${message.id}:`, error);
+      });
 
       // Update agent status to waiting
       onAgentStatusChange?.(agent.id, "waiting");
@@ -148,6 +173,9 @@ export async function generateDebateSummary(
   keyPoints: string[];
   consensus: string;
   disagreements: string[];
+  bestViewpoint?: string;
+  mostInnovative?: string;
+  goldenQuotes?: string[];
 }> {
   const conversation = messages
     .map((msg) => {
@@ -156,7 +184,19 @@ export async function generateDebateSummary(
     })
     .join("\n\n");
 
-  const prompt = `Analyze the following debate and provide a comprehensive summary.
+  // Find high-scoring messages for highlights
+  const scoredMessages = messages.filter(m => m.totalScore && m.totalScore > 0);
+  const sortedByScore = [...scoredMessages].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+  const topMessages = sortedByScore.slice(0, 5);
+  
+  const highlightsContext = topMessages.length > 0 
+    ? `\n\n## TOP SCORED MESSAGES\n${topMessages.map(m => {
+        const agent = agents.find(a => a.id === m.sender);
+        return `**${agent?.name}** (Score: ${m.totalScore}):\n${m.content}`;
+      }).join('\n\n')}`
+    : '';
+
+  const prompt = `Analyze the following debate and provide a comprehensive summary with highlights.
 
 ## DEBATE TOPIC
 ${topic}
@@ -165,7 +205,7 @@ ${topic}
 ${agents.map((a) => `- ${a.name}: ${a.profile}`).join("\n")}
 
 ## CONVERSATION
-${conversation}
+${conversation}${highlightsContext}
 
 ## TASK
 Provide a JSON response with the following structure:
@@ -173,7 +213,10 @@ Provide a JSON response with the following structure:
   "summary": "A comprehensive 2-3 paragraph summary of the entire debate",
   "keyPoints": ["Key point 1", "Key point 2", "Key point 3"],
   "consensus": "Main areas of consensus and agreement",
-  "disagreements": ["Point of disagreement 1", "Point of disagreement 2"]
+  "disagreements": ["Point of disagreement 1", "Point of disagreement 2"],
+  "bestViewpoint": "The most well-reasoned and convincing argument from the debate",
+  "mostInnovative": "The most creative or novel idea presented",
+  "goldenQuotes": ["Memorable quote 1", "Memorable quote 2", "Memorable quote 3"]
 }`;
 
   try {

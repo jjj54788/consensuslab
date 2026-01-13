@@ -47,6 +47,33 @@ const PRESET_AGENTS = [
     color: "#8B5CF6",
     description: "提出创新观点和解决方案",
   },
+  {
+    id: "logic_scorer",
+    name: "逻辑评分者",
+    profile: "逻辑严密性评判员",
+    systemPrompt:
+      "你是一位中立的逻辑评分者，专门评估论点的逻辑严密性和论证质量。你的任务是：1) 为每条发言的逻辑性打分（0-10分）；2) 评估论据的充分性和可靠性；3) 检查是否存在逻辑谬误；4) 简短说明评分理由。请以JSON格式返回：{\"score\": 分数, \"reason\": \"评分理由\"}",
+    color: "#6366F1",
+    description: "评估论点的逻辑严密性",
+  },
+  {
+    id: "innovation_scorer",
+    name: "创新评分者",
+    profile: "创意价值评判员",
+    systemPrompt:
+      "你是一位中立的创新评分者，专门评估观点的创新性和独特性。你的任务是：1) 为每条发言的创新性打分（0-10分）；2) 评估观点是否提供了新视角；3) 判断是否挑战了常规思维；4) 简短说明评分理由。请以JSON格式返回：{\"score\": 分数, \"reason\": \"评分理由\"}",
+    color: "#EC4899",
+    description: "评估观点的创新性和独特性",
+  },
+  {
+    id: "expression_scorer",
+    name: "表达评分者",
+    profile: "沟通效果评判员",
+    systemPrompt:
+      "你是一位中立的表达评分者，专门评估论述的清晰度和说服力。你的任务是：1) 为每条发言的表达质量打分（0-10分）；2) 评估语言是否清晰易懂；3) 判断是否具有说服力和感染力；4) 简短说明评分理由。请以JSON格式返回：{\"score\": 分数, \"reason\": \"评分理由\"}",
+    color: "#14B8A6",
+    description: "评估论述的清晰度和说服力",
+  },
 ];
 
 export async function seedAgents() {
@@ -57,22 +84,27 @@ export async function seedAgents() {
   }
 
   try {
-    // Check if agents already exist
+    // Check existing agents
     const existingAgents = await db.select().from(agents);
-    if (existingAgents.length > 0) {
-      console.log("[SeedAgents] Agents already seeded");
-      return;
-    }
+    const existingIds = new Set(existingAgents.map(a => a.id));
 
-    // Insert preset agents
+    // Insert only new agents
+    let addedCount = 0;
     for (const agent of PRESET_AGENTS) {
-      await db.insert(agents).values({
-        ...agent,
-        createdAt: new Date(),
-      });
+      if (!existingIds.has(agent.id)) {
+        await db.insert(agents).values({
+          ...agent,
+          createdAt: new Date(),
+        });
+        addedCount++;
+      }
     }
 
-    console.log("[SeedAgents] Successfully seeded agents");
+    if (addedCount > 0) {
+      console.log(`[SeedAgents] Successfully added ${addedCount} new agents`);
+    } else {
+      console.log("[SeedAgents] All agents already exist");
+    }
   } catch (error) {
     console.error("[SeedAgents] Error seeding agents:", error);
   }

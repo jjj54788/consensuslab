@@ -11,6 +11,12 @@ export interface Message {
   content: string;
   round: number;
   sentiment: "positive" | "negative" | "neutral" | null;
+  logicScore?: number | null;
+  innovationScore?: number | null;
+  expressionScore?: number | null;
+  totalScore?: number | null;
+  scoringReasons?: { logic?: string; innovation?: string; expression?: string } | null;
+  isHighlight?: number | null;
   createdAt: Date;
 }
 
