@@ -462,6 +462,189 @@ export default function DebateRoom() {
                 })()}
               </div>
 
+              {/* Quality Rankings */}
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  发言质量排行榜
+                </h4>
+                <div className="space-y-3">
+                  {messages
+                    .filter(msg => msg.totalScore)
+                    .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
+                    .slice(0, 5)
+                    .map((msg, index) => {
+                      const agent = getAgentById(msg.sender);
+                      return (
+                        <div key={msg.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{agent?.name}</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {msg.totalScore?.toFixed(1)}/30
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{msg.content}</p>
+                            <div className="flex gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">逻辑 {msg.logicScore?.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground">创新 {msg.innovationScore?.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground">表达 {msg.expressionScore?.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Agent Performance Analysis */}
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  智能体表现分析
+                </h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(() => {
+                    const agentStats = selectedAgents.map(agent => {
+                      const agentMessages = messages.filter(msg => msg.sender === agent.id && msg.totalScore);
+                      if (agentMessages.length === 0) return null;
+                      
+                      const avgScore = agentMessages.reduce((sum, msg) => sum + (msg.totalScore || 0), 0) / agentMessages.length;
+                      const maxScore = Math.max(...agentMessages.map(msg => msg.totalScore || 0));
+                      const avgLogic = agentMessages.reduce((sum, msg) => sum + (msg.logicScore || 0), 0) / agentMessages.length;
+                      const avgInnovation = agentMessages.reduce((sum, msg) => sum + (msg.innovationScore || 0), 0) / agentMessages.length;
+                      const avgExpression = agentMessages.reduce((sum, msg) => sum + (msg.expressionScore || 0), 0) / agentMessages.length;
+                      
+                      const scores = { 逻辑: avgLogic, 创新: avgInnovation, 表达: avgExpression };
+                      const specialty = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+                      
+                      return { agent, avgScore, maxScore, specialty, agentMessages: agentMessages.length };
+                    }).filter(Boolean);
+                    
+                    return agentStats.map(stat => stat && (
+                      <Card key={stat.agent.id} className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold text-primary">
+                            {stat.agent.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">{stat.agent.name}</div>
+                            <div className="text-xs text-muted-foreground">{stat.agentMessages} 条发言</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">平均分</span>
+                            <span className="font-medium">{stat.avgScore.toFixed(1)}/30</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">最高分</span>
+                            <span className="font-medium">{stat.maxScore.toFixed(1)}/30</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">擅长维度</span>
+                            <Badge variant="outline" className="text-xs">{stat.specialty}</Badge>
+                          </div>
+                        </div>
+                      </Card>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Score Trend Chart */}
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  讨论质量趋势
+                </h4>
+                <div className="h-64 bg-muted/30 rounded-lg p-4">
+                  {(() => {
+                    const roundScores = messages.reduce((acc, msg) => {
+                      if (!msg.totalScore) return acc;
+                      if (!acc[msg.round]) acc[msg.round] = [];
+                      acc[msg.round].push(msg.totalScore);
+                      return acc;
+                    }, {} as Record<number, number[]>);
+                    
+                    const trendData = Object.entries(roundScores)
+                      .sort((a, b) => Number(a[0]) - Number(b[0]))
+                      .map(([round, scores]) => ({
+                        round: Number(round),
+                        avgScore: scores.reduce((sum, s) => sum + s, 0) / scores.length
+                      }));
+                    
+                    if (trendData.length === 0) return <div className="flex items-center justify-center h-full text-muted-foreground">暂无评分数据</div>;
+                    
+                    const maxScore = Math.max(...trendData.map(d => d.avgScore));
+                    const minScore = Math.min(...trendData.map(d => d.avgScore));
+                    
+                    return (
+                      <div className="relative h-full">
+                        {/* Y-axis labels */}
+                        <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-muted-foreground">
+                          <span>{maxScore.toFixed(1)}</span>
+                          <span>{((maxScore + minScore) / 2).toFixed(1)}</span>
+                          <span>{minScore.toFixed(1)}</span>
+                        </div>
+                        
+                        {/* Chart area */}
+                        <div className="absolute left-14 right-0 top-0 bottom-8">
+                          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            {/* Grid lines */}
+                            <line x1="0" y1="0" x2="100" y2="0" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
+                            <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
+                            <line x1="0" y1="100" x2="100" y2="100" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
+                            
+                            {/* Trend line */}
+                            <polyline
+                              points={trendData.map((d, i) => {
+                                const x = (i / (trendData.length - 1)) * 100;
+                                const y = 100 - ((d.avgScore - minScore) / (maxScore - minScore)) * 100;
+                                return `${x},${y}`;
+                              }).join(' ')}
+                              fill="none"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth="2"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                            
+                            {/* Data points */}
+                            {trendData.map((d, i) => {
+                              const x = (i / (trendData.length - 1)) * 100;
+                              const y = 100 - ((d.avgScore - minScore) / (maxScore - minScore)) * 100;
+                              return (
+                                <circle
+                                  key={i}
+                                  cx={x}
+                                  cy={y}
+                                  r="1.5"
+                                  fill="hsl(var(--primary))"
+                                  vectorEffect="non-scaling-stroke"
+                                />
+                              );
+                            })}
+                          </svg>
+                        </div>
+                        
+                        {/* X-axis labels */}
+                        <div className="absolute left-14 right-0 bottom-0 h-6 flex justify-between text-xs text-muted-foreground">
+                          {trendData.map((d, i) => (
+                            <span key={i}>第{d.round}轮</span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
               {/* Full Summary */}
               <Separator className="my-6" />
               <div className="space-y-4">
