@@ -54,7 +54,7 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
   const allExpanded = rounds.every(round => !collapsedRounds[Number(round)]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Global Expand/Collapse Control */}
       {rounds.length > 0 && (
         <div className="flex justify-end">
@@ -85,13 +85,13 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
         const agentCount = new Set(roundMessages.map((m: any) => m.sender)).size;
         
         return (
-          <div key={roundNum} className="space-y-4">
+          <div key={roundNum} className={isCollapsed ? "space-y-0" : "space-y-4"}>
             {/* Round Header - Clickable */}
             <div 
               className="flex items-center gap-4 cursor-pointer group hover:opacity-80 transition-opacity"
               onClick={() => toggleRound(Number(roundNum))}
             >
-              <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
                 {isCollapsed ? (
                   <ChevronRight className="h-4 w-4 text-primary transition-transform group-hover:translate-x-0.5" />
                 ) : (

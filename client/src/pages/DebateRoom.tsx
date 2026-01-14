@@ -363,43 +363,103 @@ export default function DebateRoom() {
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6">
                 {/* Best Viewpoint */}
-                {displaySession.bestViewpoint && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
-                      <TrendingUp className="h-4 w-4" />
-                      最佳观点
+                {displaySession.bestViewpoint && (() => {
+                  // Find the message with highest total score
+                  const bestMessage = messages.reduce((best, msg) => 
+                    (msg.totalScore || 0) > (best?.totalScore || 0) ? msg : best
+                  , messages[0]);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          <TrendingUp className="h-4 w-4" />
+                          最佳观点
+                        </div>
+                        {bestMessage?.totalScore && (
+                          <Badge variant="secondary" className="text-xs">
+                            总分 {bestMessage.totalScore.toFixed(1)}/30
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-sm">{displaySession.bestViewpoint}</p>
+                        {bestMessage?.totalScore && (
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+                            <span className="text-xs text-blue-600 dark:text-blue-400">逻辑 {bestMessage.logicScore?.toFixed(1)}</span>
+                            <span className="text-xs text-blue-600 dark:text-blue-400">创新 {bestMessage.innovationScore?.toFixed(1)}</span>
+                            <span className="text-xs text-blue-600 dark:text-blue-400">表达 {bestMessage.expressionScore?.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm">{displaySession.bestViewpoint}</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Most Innovative */}
-                {displaySession.mostInnovative && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                      <Sparkles className="h-4 w-4" />
-                      最创新观点
+                {displaySession.mostInnovative && (() => {
+                  // Find the message with highest innovation score
+                  const innovativeMessage = messages.reduce((best, msg) => 
+                    (msg.innovationScore || 0) > (best?.innovationScore || 0) ? msg : best
+                  , messages[0]);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400">
+                          <Sparkles className="h-4 w-4" />
+                          最创新观点
+                        </div>
+                        {innovativeMessage?.innovationScore && (
+                          <Badge variant="secondary" className="text-xs">
+                            创新 {innovativeMessage.innovationScore.toFixed(1)}/10
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <p className="text-sm">{displaySession.mostInnovative}</p>
+                        {innovativeMessage?.totalScore && (
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-purple-200 dark:border-purple-700">
+                            <span className="text-xs text-purple-600 dark:text-purple-400">逻辑 {innovativeMessage.logicScore?.toFixed(1)}</span>
+                            <span className="text-xs text-purple-600 dark:text-purple-400">创新 {innovativeMessage.innovationScore?.toFixed(1)}</span>
+                            <span className="text-xs text-purple-600 dark:text-purple-400">表达 {innovativeMessage.expressionScore?.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-sm">{displaySession.mostInnovative}</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Golden Quote */}
-                {displaySession.goldenQuotes && displaySession.goldenQuotes.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
-                      <Quote className="h-4 w-4" />
-                      精彩金句
+                {displaySession.goldenQuotes && displaySession.goldenQuotes.length > 0 && (() => {
+                  // Find the message with highest expression score
+                  const expressiveMessage = messages.reduce((best, msg) => 
+                    (msg.expressionScore || 0) > (best?.expressionScore || 0) ? msg : best
+                  , messages[0]);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400">
+                          <Quote className="h-4 w-4" />
+                          精彩金句
+                        </div>
+                        {expressiveMessage?.expressionScore && (
+                          <Badge variant="secondary" className="text-xs">
+                            表达 {expressiveMessage.expressionScore.toFixed(1)}/10
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                        <p className="text-sm italic">"{displaySession.goldenQuotes[0]}"</p>
+                        {expressiveMessage?.totalScore && (
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-amber-200 dark:border-amber-700">
+                            <span className="text-xs text-amber-600 dark:text-amber-400">逻辑 {expressiveMessage.logicScore?.toFixed(1)}</span>
+                            <span className="text-xs text-amber-600 dark:text-amber-400">创新 {expressiveMessage.innovationScore?.toFixed(1)}</span>
+                            <span className="text-xs text-amber-600 dark:text-amber-400">表达 {expressiveMessage.expressionScore?.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <p className="text-sm italic">"{displaySession.goldenQuotes[0]}"</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Full Summary */}
