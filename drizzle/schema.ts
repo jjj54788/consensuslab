@@ -43,11 +43,12 @@ export type InsertAgent = typeof agents.$inferInsert;
  */
 export const debateTemplates = mysqlTable("debate_templates", {
   id: varchar("id", { length: 64 }).primaryKey(),
-  userId: varchar("userId", { length: 255 }).notNull(),
+  userId: varchar("userId", { length: 255 }), // null for system templates
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   agentIds: json("agentIds").$type<string[]>().notNull(),
   rounds: int("rounds").notNull().default(5),
+  isSystem: int("isSystem").notNull().default(0), // 1 for preset templates, 0 for user templates
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

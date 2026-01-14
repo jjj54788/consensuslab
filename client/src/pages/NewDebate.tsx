@@ -219,11 +219,25 @@ export default function NewDebate() {
                           <SelectValue placeholder="加载模板" />
                         </SelectTrigger>
                         <SelectContent>
-                          {templates.map((template) => (
-                            <SelectItem key={template.id} value={template.id}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
+                          {templates
+                            .sort((a, b) => {
+                              // System templates first
+                              if (a.isSystem && !b.isSystem) return -1;
+                              if (!a.isSystem && b.isSystem) return 1;
+                              return 0;
+                            })
+                            .map((template) => (
+                              <SelectItem key={template.id} value={template.id}>
+                                <div className="flex items-center gap-2">
+                                  {template.name}
+                                  {template.isSystem && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      系统推荐
+                                    </span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     )}

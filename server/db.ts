@@ -178,13 +178,19 @@ export async function getUserDebateTemplates(userId: string) {
   if (!db) return [];
 
   const { debateTemplates } = await import("../drizzle/schema");
-  const { eq, desc } = await import("drizzle-orm");
+  const { eq, desc, or, isNull } = await import("drizzle-orm");
   
+  // Return both system templates (userId is null, isSystem = 1) and user's templates
   return await db
     .select()
     .from(debateTemplates)
-    .where(eq(debateTemplates.userId, userId))
-    .orderBy(desc(debateTemplates.updatedAt));
+    .where(
+      or(
+        eq(debateTemplates.isSystem, 1),
+        eq(debateTemplates.userId, userId)
+      )
+    )
+    .orderBy(desc(debateTemplates.isSystem), desc(debateTemplates.updatedAt));
 }
 
 export async function getDebateTemplateById(templateId: string) {

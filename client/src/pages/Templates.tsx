@@ -144,12 +144,26 @@ export default function Templates() {
             </div>
           ) : templates && templates.length > 0 ? (
             <div className="grid gap-4">
-              {templates.map((template) => (
-                <Card key={template.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl">{template.name}</CardTitle>
+              {templates
+                .sort((a, b) => {
+                  // System templates first
+                  if (a.isSystem && !b.isSystem) return -1;
+                  if (!a.isSystem && b.isSystem) return 1;
+                  return 0;
+                })
+                .map((template) => (
+                  <Card key={template.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CardTitle className="text-xl">{template.name}</CardTitle>
+                            {template.isSystem && (
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                系统推荐
+                              </span>
+                            )}
+                          </div>
                         {template.description && (
                           <CardDescription className="mt-2">
                             {template.description}
@@ -172,13 +186,15 @@ export default function Templates() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeletingTemplateId(template.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {!template.isSystem && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeletingTemplateId(template.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
