@@ -1,0 +1,9 @@
+{
+  "query": "-- 观点论证组\nUPDATE agents SET category = 'debater', displayOrder = 1 WHERE id = 'supporter';\nUPDATE agents SET category = 'debater', displayOrder = 2 WHERE id = 'opponent';\nUPDATE agents SET category = 'debater', displayOrder = 3 WHERE id = 'moderator';\n\n-- 质量评估组\nUPDATE agents SET category = 'evaluator', displayOrder = 1 WHERE id = 'logic_scorer';\nUPDATE agents SET category = 'evaluator', displayOrder = 2 WHERE id = 'innovation_scorer';\nUPDATE agents SET category = 'evaluator', displayOrder = 3 WHERE id = 'expression_scorer';\n\n-- 专业分析组\nUPDATE agents SET category = 'specialist', displayOrder = 1 WHERE id = 'critic';\nUPDATE agents SET category = 'specialist', displayOrder = 2 WHERE id = 'innovator';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2EWZNYNSuTKGjiZ.root --database DmM4Thn8jeAVUsEhuTH7VK --execute -- 观点论证组\nUPDATE agents SET category = 'debater', displayOrder = 1 WHERE id = 'supporter';\nUPDATE agents SET category = 'debater', displayOrder = 2 WHERE id = 'opponent';\nUPDATE agents SET category = 'debater', displayOrder = 3 WHERE id = 'moderator';\n\n-- 质量评估组\nUPDATE agents SET category = 'evaluator', displayOrder = 1 WHERE id = 'logic_scorer';\nUPDATE agents SET category = 'evaluator', displayOrder = 2 WHERE id = 'innovation_scorer';\nUPDATE agents SET category = 'evaluator', displayOrder = 3 WHERE id = 'expression_scorer';\n\n-- 专业分析组\nUPDATE agents SET category = 'specialist', displayOrder = 1 WHERE id = 'critic';\nUPDATE agents SET category = 'specialist', displayOrder = 2 WHERE id = 'innovator';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 814
+}

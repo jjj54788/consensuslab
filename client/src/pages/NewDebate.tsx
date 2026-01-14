@@ -53,6 +53,17 @@ export default function NewDebate() {
     setSelectedAgents([]);
   };
 
+  const handleSelectCategory = (category: string) => {
+    if (!agents) return;
+    const categoryAgents = agents.filter((agent) => agent.category === category);
+    const categoryAgentIds = categoryAgents.map((agent) => agent.id);
+    // 合并到现有选择
+    setSelectedAgents((prev) => {
+      const newSet = new Set([...prev, ...categoryAgentIds]);
+      return Array.from(newSet);
+    });
+  };
+
   const handleTopicSelect = (selectedTopic: string) => {
     setTopic(selectedTopic);
   };
@@ -174,48 +185,187 @@ export default function NewDebate() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4">
-                  {agents?.map((agent) => {
-                    const isSelected = selectedAgents.includes(agent.id);
-                    return (
-                      <div
-                        key={agent.id}
-                        className={`flex items-start space-x-3 p-4 rounded-lg border transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-primary/10 border-primary"
-                            : "hover:bg-accent/50"
-                        }`}
-                        onClick={() => handleAgentToggle(agent.id)}
-                      >
-                        <div
-                          className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-all ${
-                            isSelected
-                              ? "bg-primary border-primary"
-                              : "border-muted-foreground/30"
-                          }`}
-                        >
-                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: agent.color }}
-                            />
-                            <Label className="text-base font-semibold cursor-pointer">
-                              {agent.name}
-                            </Label>
-                            <span className="text-sm text-muted-foreground">
-                              {agent.profile}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {agent.description}
-                          </p>
-                        </div>
+                {/* 分组显示区域 */}
+                <div className="grid md:grid-cols-3 gap-6">
+                  {/* 观点论证组 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-sm">观点论证组</h3>
+                        <p className="text-xs text-muted-foreground">提出不同立场的观点</p>
                       </div>
-                    );
-                  })}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSelectCategory("debater")}
+                        className="h-7 text-xs"
+                      >
+                        全选
+                      </Button>
+                    </div>
+                    {agents
+                      ?.filter((agent) => agent.category === "debater")
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((agent) => {
+                        const isSelected = selectedAgents.includes(agent.id);
+                        return (
+                          <div
+                            key={agent.id}
+                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-primary/10 border-primary"
+                                : "hover:bg-accent/50"
+                            }`}
+                            onClick={() => handleAgentToggle(agent.id)}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div
+                                className={`flex items-center justify-center w-4 h-4 rounded border-2 transition-all mt-0.5 ${
+                                  isSelected
+                                    ? "bg-primary border-primary"
+                                    : "border-muted-foreground/30"
+                                }`}
+                              >
+                                {isSelected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: agent.color }}
+                                  />
+                                  <span className="font-medium text-sm">{agent.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {agent.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* 质量评估组 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-sm">质量评估组</h3>
+                        <p className="text-xs text-muted-foreground">评估发言质量维度</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSelectCategory("evaluator")}
+                        className="h-7 text-xs"
+                      >
+                        全选
+                      </Button>
+                    </div>
+                    {agents
+                      ?.filter((agent) => agent.category === "evaluator")
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((agent) => {
+                        const isSelected = selectedAgents.includes(agent.id);
+                        return (
+                          <div
+                            key={agent.id}
+                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-primary/10 border-primary"
+                                : "hover:bg-accent/50"
+                            }`}
+                            onClick={() => handleAgentToggle(agent.id)}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div
+                                className={`flex items-center justify-center w-4 h-4 rounded border-2 transition-all mt-0.5 ${
+                                  isSelected
+                                    ? "bg-primary border-primary"
+                                    : "border-muted-foreground/30"
+                                }`}
+                              >
+                                {isSelected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: agent.color }}
+                                  />
+                                  <span className="font-medium text-sm">{agent.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {agent.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* 专业分析组 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-sm">专业分析组</h3>
+                        <p className="text-xs text-muted-foreground">提供专业视角分析</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSelectCategory("specialist")}
+                        className="h-7 text-xs"
+                      >
+                        全选
+                      </Button>
+                    </div>
+                    {agents
+                      ?.filter((agent) => agent.category === "specialist")
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((agent) => {
+                        const isSelected = selectedAgents.includes(agent.id);
+                        return (
+                          <div
+                            key={agent.id}
+                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-primary/10 border-primary"
+                                : "hover:bg-accent/50"
+                            }`}
+                            onClick={() => handleAgentToggle(agent.id)}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div
+                                className={`flex items-center justify-center w-4 h-4 rounded border-2 transition-all mt-0.5 ${
+                                  isSelected
+                                    ? "bg-primary border-primary"
+                                    : "border-muted-foreground/30"
+                                }`}
+                              >
+                                {isSelected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: agent.color }}
+                                  />
+                                  <span className="font-medium text-sm">{agent.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {agent.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
                 </div>
               </CardContent>
             </Card>

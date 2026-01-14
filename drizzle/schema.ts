@@ -29,6 +29,8 @@ export const agents = mysqlTable("agents", {
   systemPrompt: text("systemPrompt").notNull(),
   color: varchar("color", { length: 20 }).notNull(),
   description: text("description"),
+  category: mysqlEnum("category", ["debater", "evaluator", "specialist"]).notNull().default("debater"),
+  displayOrder: int("displayOrder").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
