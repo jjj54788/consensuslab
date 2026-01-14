@@ -9,6 +9,7 @@ import AIProviderSettings from "./pages/AIProviderSettings";
 import NewDebate from "./pages/NewDebate";
 import DebateRoom from "./pages/DebateRoom";
 import DebateList from "./pages/DebateList";
+import Templates from "./pages/Templates";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/debates/new" component={NewDebate} />
       <Route path="/debates/:sessionId" component={DebateRoom} />
       <Route path="/debates" component={DebateList} />
+      <Route path="/templates" component={Templates} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

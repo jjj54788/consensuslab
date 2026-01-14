@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Check, Sparkles, Save, FolderOpen } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -16,6 +18,10 @@ export default function NewDebate() {
   const [topic, setTopic] = useState("");
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [maxRounds, setMaxRounds] = useState(5);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
 
   // 推荐话题列表
   const recommendedTopics = [
@@ -27,6 +33,20 @@ export default function NewDebate() {
   ];
 
   const { data: agents, isLoading: agentsLoading } = trpc.agents.list.useQuery();
+  const { data: templates } = trpc.templates.list.useQuery(undefined, {
+    enabled: !!user,
+  });
+  const saveTemplate = trpc.templates.create.useMutation({
+    onSuccess: () => {
+      toast.success("模板保存成功！");
+      setShowSaveDialog(false);
+      setTemplateName("");
+      setTemplateDescription("");
+    },
+    onError: (error) => {
+      toast.error(`保存失败：${error.message}`);
+    },
+  });
   const createDebate = trpc.debate.create.useMutation({
     onSuccess: (data) => {
       toast.success("讨论创建成功！");
@@ -66,6 +86,33 @@ export default function NewDebate() {
 
   const handleTopicSelect = (selectedTopic: string) => {
     setTopic(selectedTopic);
+  };
+
+  const handleSaveTemplate = () => {
+    if (!templateName.trim()) {
+      toast.error("请输入模板名称");
+      return;
+    }
+    if (selectedAgents.length < 2) {
+      toast.error("请至少选择2个智能体");
+      return;
+    }
+    saveTemplate.mutate({
+      name: templateName.trim(),
+      description: templateDescription.trim() || undefined,
+      agentIds: selectedAgents,
+      rounds: maxRounds,
+    });
+  };
+
+  const handleLoadTemplate = (templateId: string) => {
+    const template = templates?.find((t) => t.id === templateId);
+    if (template) {
+      setSelectedAgents(template.agentIds as string[]);
+      setMaxRounds(template.rounds);
+      setSelectedTemplateId(templateId);
+      toast.success(`已加载模板：${template.name}`);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -165,6 +212,33 @@ export default function NewDebate() {
                     <CardDescription>至少选择 2 个智能体参与讨论</CardDescription>
                   </div>
                   <div className="flex gap-2">
+                    {user && templates && templates.length > 0 && (
+                      <Select value={selectedTemplateId} onValueChange={handleLoadTemplate}>
+                        <SelectTrigger className="w-[180px] h-9">
+                          <FolderOpen className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="加载模板" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {user && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSaveDialog(true)}
+                        disabled={selectedAgents.length < 2}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        保存为模板
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="outline"
@@ -419,6 +493,67 @@ export default function NewDebate() {
           </form>
         </div>
       </main>
+
+      {/* 保存模板对话框 */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>保存为模板</DialogTitle>
+            <DialogDescription>
+              保存当前的智能体组合和轮数配置，下次可以快速加载。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">模板名称 *</Label>
+              <Input
+                id="template-name"
+                placeholder="例如：全面分析模板"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-description">模板描述（可选）</Label>
+              <Textarea
+                id="template-description"
+                placeholder="简要描述该模板的用途..."
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>将保存：</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>{selectedAgents.length} 个智能体</li>
+                <li>{maxRounds} 轮讨论</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveDialog(false)}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleSaveTemplate}
+              disabled={saveTemplate.isPending}
+            >
+              {saveTemplate.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  保存中...
+                </>
+              ) : (
+                "保存模板"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

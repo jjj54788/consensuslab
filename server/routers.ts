@@ -10,6 +10,11 @@ import {
   getDebateSessionById,
   getUserDebateSessions,
   getSessionMessages,
+  createDebateTemplate,
+  getUserDebateTemplates,
+  getDebateTemplateById,
+  updateDebateTemplate,
+  deleteDebateTemplate,
 } from "./db";
 import {
   getUserAIProviders,
@@ -37,6 +42,72 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return await getAllAgents();
     }),
+  }),
+
+  templates: router({
+    // 创建模板
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(100),
+          description: z.string().optional(),
+          agentIds: z.array(z.string()).min(2),
+          rounds: z.number().int().min(1).max(99),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const templateId = nanoid();
+        await createDebateTemplate({
+          id: templateId,
+          userId: String(ctx.user.id),
+          name: input.name,
+          description: input.description,
+          agentIds: input.agentIds,
+          rounds: input.rounds,
+        });
+        return { id: templateId };
+      }),
+
+    // 获取用户所有模板
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserDebateTemplates(String(ctx.user.id));
+    }),
+
+    // 获取单个模板
+    getById: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return await getDebateTemplateById(input.id);
+      }),
+
+    // 更新模板
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          name: z.string().min(1).max(100).optional(),
+          description: z.string().optional(),
+          agentIds: z.array(z.string()).min(2).optional(),
+          rounds: z.number().int().min(1).max(99).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await updateDebateTemplate(input.id, String(ctx.user.id), {
+          name: input.name,
+          description: input.description,
+          agentIds: input.agentIds,
+          rounds: input.rounds,
+        });
+        return { success: true };
+      }),
+
+    // 删除模板
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteDebateTemplate(input.id, String(ctx.user.id));
+        return { success: true };
+      }),
   }),
 
   aiProvider: router({

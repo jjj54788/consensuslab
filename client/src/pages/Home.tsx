@@ -68,11 +68,18 @@ export default function Home() {
               </Button>
             </Link>
             {isAuthenticated && (
-              <Link href="/settings/ai-providers">
-                <Button size="lg" variant="outline">
-                  AI 设置
-                </Button>
-              </Link>
+              <>
+                <Link href="/templates">
+                  <Button size="lg" variant="outline">
+                    我的模板
+                  </Button>
+                </Link>
+                <Link href="/settings/ai-providers">
+                  <Button size="lg" variant="outline">
+                    AI 设置
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>

@@ -38,6 +38,24 @@ export type Agent = typeof agents.$inferSelect;
 export type InsertAgent = typeof agents.$inferInsert;
 
 /**
+ * Debate templates table
+ * Stores user-defined templates for quick debate creation
+ */
+export const debateTemplates = mysqlTable("debate_templates", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: varchar("userId", { length: 255 }).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  agentIds: json("agentIds").$type<string[]>().notNull(),
+  rounds: int("rounds").notNull().default(5),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DebateTemplate = typeof debateTemplates.$inferSelect;
+export type InsertDebateTemplate = typeof debateTemplates.$inferInsert;
+
+/**
  * Debate sessions table
  * Stores debate sessions with topic, participants, and configuration
  */

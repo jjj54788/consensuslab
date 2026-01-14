@@ -50,6 +50,13 @@
       "when": 1768350787522,
       "tag": "0006_ambitious_thunderbolt_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1768351229719,
+      "tag": "0007_bored_silvermane",
+      "breakpoints": true
     }
   ]
 }

@@ -148,3 +148,110 @@ export async function updateMessage(id: string, updates: Partial<InsertMessage>)
   if (!db) throw new Error("Database not available");
   await db.update(messages).set(updates).where(eq(messages.id, id));
 }
+
+// ==================== Debate Templates ====================
+
+export async function createDebateTemplate(template: {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  agentIds: string[];
+  rounds: number;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { debateTemplates } = await import("../drizzle/schema");
+  await db.insert(debateTemplates).values({
+    id: template.id,
+    userId: template.userId,
+    name: template.name,
+    description: template.description || null,
+    agentIds: template.agentIds,
+    rounds: template.rounds,
+  });
+}
+
+export async function getUserDebateTemplates(userId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const { debateTemplates } = await import("../drizzle/schema");
+  const { eq, desc } = await import("drizzle-orm");
+  
+  return await db
+    .select()
+    .from(debateTemplates)
+    .where(eq(debateTemplates.userId, userId))
+    .orderBy(desc(debateTemplates.updatedAt));
+}
+
+export async function getDebateTemplateById(templateId: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const { debateTemplates } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  
+  const results = await db
+    .select()
+    .from(debateTemplates)
+    .where(eq(debateTemplates.id, templateId))
+    .limit(1);
+  
+  return results[0] || null;
+}
+
+export async function updateDebateTemplate(
+  templateId: string,
+  userId: string,
+  updates: {
+    name?: string;
+    description?: string;
+    agentIds?: string[];
+    rounds?: number;
+  }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { debateTemplates } = await import("../drizzle/schema");
+  const { eq, and } = await import("drizzle-orm");
+  
+  const updateData: Record<string, unknown> = {};
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.agentIds !== undefined) updateData.agentIds = updates.agentIds;
+  if (updates.rounds !== undefined) updateData.rounds = updates.rounds;
+
+  await db
+    .update(debateTemplates)
+    .set(updateData)
+    .where(
+      and(
+        eq(debateTemplates.id, templateId),
+        eq(debateTemplates.userId, userId)
+      )
+    );
+}
+
+export async function deleteDebateTemplate(
+  templateId: string,
+  userId: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { debateTemplates } = await import("../drizzle/schema");
+  const { eq, and } = await import("drizzle-orm");
+  
+  await db
+    .delete(debateTemplates)
+    .where(
+      and(
+        eq(debateTemplates.id, templateId),
+        eq(debateTemplates.userId, userId)
+      )
+    );
+}
