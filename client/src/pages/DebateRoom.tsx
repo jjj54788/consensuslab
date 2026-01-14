@@ -564,7 +564,7 @@ export default function DebateRoom() {
                   <TrendingUp className="h-5 w-5 text-primary" />
                   讨论质量趋势
                 </h4>
-                <div className="h-64 bg-muted/30 rounded-lg p-4">
+                <div className="bg-muted/30 rounded-lg p-4">
                   {(() => {
                     const roundScores = messages.reduce((acc, msg) => {
                       if (!msg.totalScore) return acc;
@@ -577,67 +577,45 @@ export default function DebateRoom() {
                       .sort((a, b) => Number(a[0]) - Number(b[0]))
                       .map(([round, scores]) => ({
                         round: Number(round),
-                        avgScore: scores.reduce((sum, s) => sum + s, 0) / scores.length
+                        avgScore: scores.reduce((sum, s) => sum + s, 0) / scores.length,
+                        count: scores.length
                       }));
                     
-                    if (trendData.length === 0) return <div className="flex items-center justify-center h-full text-muted-foreground">暂无评分数据</div>;
+                    if (trendData.length === 0) return <div className="flex items-center justify-center h-32 text-muted-foreground">暂无评分数据</div>;
                     
                     const maxScore = Math.max(...trendData.map(d => d.avgScore));
                     const minScore = Math.min(...trendData.map(d => d.avgScore));
+                    const scoreRange = maxScore - minScore;
                     
                     return (
-                      <div className="relative h-full">
-                        {/* Y-axis labels */}
-                        <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-muted-foreground">
-                          <span>{maxScore.toFixed(1)}</span>
-                          <span>{((maxScore + minScore) / 2).toFixed(1)}</span>
-                          <span>{minScore.toFixed(1)}</span>
+                      <div className="space-y-3">
+                        {/* Chart */}
+                        <div className="flex items-end gap-2 h-48">
+                          {trendData.map((d, i) => {
+                            const heightPercent = scoreRange > 0 ? ((d.avgScore - minScore) / scoreRange) * 100 : 50;
+                            return (
+                              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                                {/* Bar */}
+                                <div className="w-full flex flex-col items-center">
+                                  <span className="text-xs font-medium text-primary mb-1">{d.avgScore.toFixed(1)}</span>
+                                  <div 
+                                    className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t transition-all hover:from-primary/90 hover:to-primary/50 cursor-pointer"
+                                    style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                                    title={`第${d.round}轮: 平均分 ${d.avgScore.toFixed(2)} (${d.count}条发言)`}
+                                  />
+                                </div>
+                                {/* Label */}
+                                <span className="text-xs text-muted-foreground">第{d.round}轮</span>
+                              </div>
+                            );
+                          })}
                         </div>
                         
-                        {/* Chart area */}
-                        <div className="absolute left-14 right-0 top-0 bottom-8">
-                          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            {/* Grid lines */}
-                            <line x1="0" y1="0" x2="100" y2="0" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
-                            <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
-                            <line x1="0" y1="100" x2="100" y2="100" stroke="currentColor" strokeWidth="0.2" className="text-muted-foreground/20" />
-                            
-                            {/* Trend line */}
-                            <polyline
-                              points={trendData.map((d, i) => {
-                                const x = (i / (trendData.length - 1)) * 100;
-                                const y = 100 - ((d.avgScore - minScore) / (maxScore - minScore)) * 100;
-                                return `${x},${y}`;
-                              }).join(' ')}
-                              fill="none"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth="2"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                            
-                            {/* Data points */}
-                            {trendData.map((d, i) => {
-                              const x = (i / (trendData.length - 1)) * 100;
-                              const y = 100 - ((d.avgScore - minScore) / (maxScore - minScore)) * 100;
-                              return (
-                                <circle
-                                  key={i}
-                                  cx={x}
-                                  cy={y}
-                                  r="1.5"
-                                  fill="hsl(var(--primary))"
-                                  vectorEffect="non-scaling-stroke"
-                                />
-                              );
-                            })}
-                          </svg>
-                        </div>
-                        
-                        {/* X-axis labels */}
-                        <div className="absolute left-14 right-0 bottom-0 h-6 flex justify-between text-xs text-muted-foreground">
-                          {trendData.map((d, i) => (
-                            <span key={i}>第{d.round}轮</span>
-                          ))}
+                        {/* Legend */}
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                          <span>最低: {minScore.toFixed(1)}分</span>
+                          <span>最高: {maxScore.toFixed(1)}分</span>
+                          <span>平均: {(trendData.reduce((sum, d) => sum + d.avgScore, 0) / trendData.length).toFixed(1)}分</span>
                         </div>
                       </div>
                     );
