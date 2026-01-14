@@ -74,7 +74,7 @@ export default function Home() {
                     我的模板
                   </Button>
                 </Link>
-                <Link href="/settings/ai-providers">
+                <Link href="/settings/api-keys">
                   <Button size="lg" variant="outline">
                     AI 设置
                   </Button>

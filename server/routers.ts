@@ -24,6 +24,17 @@ import {
   deleteAIProviderConfig,
   setActiveProvider,
 } from "./aiProviderDb";
+import {
+  getAllProviders,
+  getAllModels,
+  getModelsByProvider,
+  saveUserApiKey,
+  getUserApiKeys,
+  deleteUserApiKey,
+  setAgentModelConfig,
+  getSessionAgentModelConfigs,
+} from "./models/db";
+import { ModelFactory } from "./models/factory";
 import { exportToMarkdown, exportToPDF } from "./exportDebate";
 
 export const appRouter = router({
@@ -37,6 +48,106 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  // Model management routes
+  modelProviders: router({
+    list: publicProcedure.query(async () => {
+      return await getAllProviders();
+    }),
+  }),
+
+  models: router({
+    list: publicProcedure.query(async () => {
+      return await getAllModels();
+    }),
+    byProvider: publicProcedure
+      .input(z.object({ providerId: z.number() }))
+      .query(async ({ input }) => {
+        return await getModelsByProvider(input.providerId);
+      }),
+  }),
+
+  apiKeys: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserApiKeys(ctx.user.id);
+    }),
+    save: protectedProcedure
+      .input(
+        z.object({
+          providerId: z.number(),
+          apiKey: z.string().min(1),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await saveUserApiKey(ctx.user.id, input.providerId, input.apiKey);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ providerId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteUserApiKey(ctx.user.id, input.providerId);
+        return { success: true };
+      }),
+    test: protectedProcedure
+      .input(
+        z.object({
+          providerId: z.number(),
+          apiKey: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          // Get provider info
+          const providers = await getAllProviders();
+          const provider = providers.find((p) => p.id === input.providerId);
+          if (!provider) {
+            throw new Error("Provider not found");
+          }
+
+          // Get a test model for this provider
+          const providerModels = await getModelsByProvider(input.providerId);
+          if (providerModels.length === 0) {
+            throw new Error("No models available for this provider");
+          }
+
+          // Create adapter and test connection
+          const adapter = ModelFactory.createAdapter(
+            provider.name,
+            providerModels[0].modelName,
+            input.apiKey,
+            provider.baseUrl || undefined
+          );
+
+          const isValid = await adapter.testConnection();
+          return { success: isValid, message: isValid ? "API key is valid" : "API key is invalid" };
+        } catch (error) {
+          return {
+            success: false,
+            message: error instanceof Error ? error.message : "Unknown error",
+          };
+        }
+      }),
+  }),
+
+  agentModels: router({
+    setConfig: protectedProcedure
+      .input(
+        z.object({
+          sessionId: z.string(),
+          agentId: z.string(),
+          modelId: z.number(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await setAgentModelConfig(input.sessionId, input.agentId, input.modelId);
+        return { success: true };
+      }),
+    getSessionConfigs: protectedProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        return await getSessionAgentModelConfigs(input.sessionId);
+      }),
   }),
 
   agents: router({
