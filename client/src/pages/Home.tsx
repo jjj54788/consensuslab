@@ -23,14 +23,14 @@ export default function Home() {
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">多智能体讨论系统</h1>
+            <h1 className="text-2xl font-bold">ConsensusLab</h1>
           </div>
           <div>
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-sm text-muted-foreground">欢迎，{user?.name}</span>
                 <Link href="/debates">
-                  <Button>进入讨论</Button>
+                  <Button>进入平台</Button>
                 </Link>
               </div>
             ) : (
@@ -46,16 +46,16 @@ export default function Home() {
       <section className="container py-20">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-5xl font-bold tracking-tight">
-            让 AI 智能体为你
-            <span className="text-primary"> 多角度分析问题</span>
+            探索思维的多维空间
+            <span className="text-primary">构建决策的共识基石</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            基于 MetaGPT 架构，多个不同人格的 AI 智能体协同工作，从反对、批判、支持、中立和创新等多个角度深入讨论任何话题
+            ConsensusLab 是一个多智能体协商平台，通过8位专家智能体的多维度论证，帮助你探索复杂问题的共识空间，提升决策质量
           </p>
           <div className="flex gap-4 justify-center pt-4">
             {isAuthenticated ? (
               <Link href="/debates/new">
-                <Button size="lg">开始新讨论</Button>
+                <Button size="lg">启动协商会议</Button>
               </Link>
             ) : (
               <Button size="lg" asChild>
@@ -64,7 +64,7 @@ export default function Home() {
             )}
             <Link href="/debates">
               <Button size="lg" variant="outline">
-                查看历史讨论
+                协商档案
               </Button>
             </Link>
             {isAuthenticated && (
@@ -91,11 +91,11 @@ export default function Home() {
           <Card>
             <CardHeader>
               <Users className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>多人格智能体</CardTitle>
+              <CardTitle>专家智能体</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                5 种预设人格：反对者、批判者、支持者、中立者和创新者，每个智能体都有独特的思维模式
+                8位专家智能体，覆盖论证、评估、综合三大维度，每个智能体都有独特的专业视角
               </CardDescription>
             </CardContent>
           </Card>
@@ -103,11 +103,11 @@ export default function Home() {
           <Card>
             <CardHeader>
               <MessageSquare className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>实时讨论</CardTitle>
+              <CardTitle>实时协商追踪</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                通过 WebSocket 实时推送讨论进度，观看智能体之间的精彩辩论过程
+                通过 WebSocket 实时追踪协商进程，动态呈现观点交锋与共识形成过程
               </CardDescription>
             </CardContent>
           </Card>
@@ -115,11 +115,11 @@ export default function Home() {
           <Card>
             <CardHeader>
               <TrendingUp className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>智能分析</CardTitle>
+              <CardTitle>智能共识构建</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                自动生成讨论摘要、提取关键观点、识别共识和分歧点，帮助你快速理解讨论结果
+                智能生成共识报告，自动提炼关键洞察、核心论证与精彩摘录，快速把握协商成果
               </CardDescription>
             </CardContent>
           </Card>
@@ -127,11 +127,11 @@ export default function Home() {
           <Card>
             <CardHeader>
               <History className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>历史记录</CardTitle>
+              <CardTitle>协商档案</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                完整保存所有讨论记录，支持随时回顾和分析历史讨论内容
+                完整保存所有协商记录，支持随时回顾和分析历史协商会议内容
               </CardDescription>
             </CardContent>
           </Card>
@@ -148,9 +148,9 @@ export default function Home() {
                 1
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">输入讨论话题</h3>
+                <h3 className="text-xl font-semibold mb-2">设定协商议题</h3>
                 <p className="text-muted-foreground">
-                  输入你想要讨论的任何话题，可以是技术问题、商业决策、社会议题等
+                  输入你想要探讨的任何议题，可以是战略决策、学术研究、职业规划、创新孵化等
                 </p>
               </div>
             </div>
@@ -160,9 +160,9 @@ export default function Home() {
                 2
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">选择参与智能体</h3>
+                <h3 className="text-xl font-semibold mb-2">选择专家智能体</h3>
                 <p className="text-muted-foreground">
-                  从 5 种人格中选择至少 2 个智能体参与讨论，不同组合会产生不同的讨论效果
+                  从8位专家智能体中选择参与协商的成员，不同组合会产生不同的论证视角
                 </p>
               </div>
             </div>
@@ -172,9 +172,9 @@ export default function Home() {
                 3
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">观看实时讨论</h3>
+                <h3 className="text-xl font-semibold mb-2">追踪协商进程</h3>
                 <p className="text-muted-foreground">
-                  智能体们会依次发言，实时显示讨论过程，你可以看到每个智能体的状态和发言内容
+                  专家智能体们会展开多轮论证，实时显示协商过程，你可以看到每个智能体的状态和观点陈述
                 </p>
               </div>
             </div>
@@ -184,9 +184,9 @@ export default function Home() {
                 4
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">查看分析结果</h3>
+                <h3 className="text-xl font-semibold mb-2">获取共识报告</h3>
                 <p className="text-muted-foreground">
-                  讨论结束后，系统会自动生成摘要、关键观点、共识和分歧点的分析报告
+                  协商结束后，系统会自动生成共识报告，包含关键洞察、核心论证、质量评估和专家贡献度分析
                 </p>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t mt-20">
         <div className="container py-8 text-center text-sm text-muted-foreground">
-          <p>基于 MetaGPT 架构的多智能体讨论系统</p>
+          <p>ConsensusLab - 基于 MetaGPT 的多智能体协商平台</p>
         </div>
       </footer>
     </div>

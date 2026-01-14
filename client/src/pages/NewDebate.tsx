@@ -49,7 +49,7 @@ export default function NewDebate() {
   });
   const createDebate = trpc.debate.create.useMutation({
     onSuccess: (data) => {
-      toast.success("讨论创建成功！");
+      toast.success("协商会议创建成功！");
       setLocation(`/debates/${data.sessionId}`);
     },
     onError: (error) => {
@@ -119,7 +119,7 @@ export default function NewDebate() {
     e.preventDefault();
 
     if (!topic.trim()) {
-      toast.error("请输入讨论话题");
+      toast.error("请输入协商议题");
       return;
     }
 
@@ -159,9 +159,9 @@ export default function NewDebate() {
       <main className="container py-12">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">创建新讨论</h1>
+            <h1 className="text-4xl font-bold mb-2">启动协商会议</h1>
             <p className="text-muted-foreground">
-              选择智能体并输入话题，让 AI 们为你深入分析
+              选择专家智能体，设定协商议题，开启多维度思考之旅
             </p>
           </div>
 
@@ -169,12 +169,12 @@ export default function NewDebate() {
             {/* Topic Input */}
             <Card>
               <CardHeader>
-                <CardTitle>讨论话题</CardTitle>
-                <CardDescription>输入你想要讨论的问题或话题</CardDescription>
+                <CardTitle>协商议题</CardTitle>
+                <CardDescription>输入你想要探讨的问题或议题</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
-                  placeholder="例如：人工智能是否会取代人类的工作？"
+                  placeholder="例如：人工智能是否会取代人类的工作？（战略决策/学术研究/职业规划/创新孵化）"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   rows={4}
