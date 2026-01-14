@@ -590,17 +590,23 @@ export default function DebateRoom() {
                     return (
                       <div className="space-y-3">
                         {/* Chart */}
-                        <div className="flex items-end gap-2 h-48">
+                        <div className="flex items-end gap-2" style={{ height: '192px' }}>
                           {trendData.map((d, i) => {
-                            const heightPercent = scoreRange > 0 ? ((d.avgScore - minScore) / scoreRange) * 100 : 50;
+                            // 使用固定像素高度，确保柱子可见
+                            const maxBarHeight = 160;
+                            const minBarHeight = 40;
+                            const barHeight = scoreRange > 0 
+                              ? minBarHeight + ((d.avgScore - minScore) / scoreRange) * (maxBarHeight - minBarHeight)
+                              : maxBarHeight / 2;
+                            
                             return (
                               <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                {/* Bar */}
+                                {/* Bar container */}
                                 <div className="w-full flex flex-col items-center">
                                   <span className="text-xs font-medium text-primary mb-1">{d.avgScore.toFixed(1)}</span>
                                   <div 
-                                    className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t transition-all hover:from-primary/90 hover:to-primary/50 cursor-pointer"
-                                    style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                                    className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t transition-all hover:from-primary/90 hover:to-primary/50 cursor-pointer shadow-sm"
+                                    style={{ height: `${barHeight}px` }}
                                     title={`第${d.round}轮: 平均分 ${d.avgScore.toFixed(2)} (${d.count}条发言)`}
                                   />
                                 </div>
