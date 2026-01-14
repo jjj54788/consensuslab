@@ -253,27 +253,27 @@ export async function generateDebateSummary(
       }).join('\n\n')}`
     : '';
 
-  const prompt = `Analyze the following debate and provide a comprehensive summary with highlights.
+  const prompt = `请分析以下讨论并提供全面的总结和亮点。
 
-## DEBATE TOPIC
+## 讨论话题
 ${topic}
 
-## PARTICIPANTS
+## 参与者
 ${agents.map((a) => `- ${a.name}: ${a.profile}`).join("\n")}
 
-## CONVERSATION
+## 对话内容
 ${conversation}${highlightsContext}
 
-## TASK
-Provide a JSON response with the following structure:
+## 任务要求
+请用中文提供以下JSON格式的响应：
 {
-  "summary": "A comprehensive 2-3 paragraph summary of the entire debate",
-  "keyPoints": ["Key point 1", "Key point 2", "Key point 3"],
-  "consensus": "Main areas of consensus and agreement",
-  "disagreements": ["Point of disagreement 1", "Point of disagreement 2"],
-  "bestViewpoint": "The most well-reasoned and convincing argument from the debate",
-  "mostInnovative": "The most creative or novel idea presented",
-  "goldenQuotes": ["Memorable quote 1", "Memorable quote 2", "Memorable quote 3"]
+  "summary": "对整个讨论的全面总结，2-3段文字",
+  "keyPoints": ["关键观点1", "关键观点2", "关键观点3"],
+  "consensus": "主要共识和一致意见",
+  "disagreements": ["分歧点1", "分歧点2"],
+  "bestViewpoint": "讨论中最有说服力和逻辑严密的论点",
+  "mostInnovative": "最具创新性或新颖的想法",
+  "goldenQuotes": ["精彩金句1", "精彩金句2", "精彩金句3"]
 }`;
 
   try {
@@ -291,7 +291,7 @@ Provide a JSON response with the following structure:
       [
         {
           role: "system",
-          content: "You are an expert debate analyst. Provide objective, balanced analysis.",
+          content: "你是一位专业的讨论分析专家。请提供客观、平衡的分析，所有输出必须使用中文。",
         },
         { role: "user", content: prompt },
       ],

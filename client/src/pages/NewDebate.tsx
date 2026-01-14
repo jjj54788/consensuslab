@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Check, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -16,6 +16,15 @@ export default function NewDebate() {
   const [topic, setTopic] = useState("");
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [maxRounds, setMaxRounds] = useState(5);
+
+  // 推荐话题列表
+  const recommendedTopics = [
+    "AI Agent 是泡沫还是未来？",
+    "远程办公会成为主流工作模式吗？",
+    "元宇宙技术能否改变人类社交方式？",
+    "基因编辑技术应该被允许用于人类吗？",
+    "加密货币能否取代传统货币体系？",
+  ];
 
   const { data: agents, isLoading: agentsLoading } = trpc.agents.list.useQuery();
   const createDebate = trpc.debate.create.useMutation({
@@ -32,6 +41,20 @@ export default function NewDebate() {
     setSelectedAgents((prev) =>
       prev.includes(agentId) ? prev.filter((id) => id !== agentId) : [...prev, agentId]
     );
+  };
+
+  const handleSelectAll = () => {
+    if (agents) {
+      setSelectedAgents(agents.map((agent) => agent.id));
+    }
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedAgents([]);
+  };
+
+  const handleTopicSelect = (selectedTopic: string) => {
+    setTopic(selectedTopic);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,7 +114,7 @@ export default function NewDebate() {
                 <CardTitle>讨论话题</CardTitle>
                 <CardDescription>输入你想要讨论的问题或话题</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <Textarea
                   placeholder="例如：人工智能是否会取代人类的工作？"
                   value={topic}
@@ -99,14 +122,56 @@ export default function NewDebate() {
                   rows={4}
                   className="resize-none"
                 />
+                <div>
+                  <Label className="text-sm text-muted-foreground mb-2 block">
+                    <Sparkles className="inline h-3 w-3 mr-1" />
+                    推荐话题
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {recommendedTopics.map((recommendedTopic, index) => (
+                      <Button
+                        key={index}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTopicSelect(recommendedTopic)}
+                        className="text-xs"
+                      >
+                        {recommendedTopic}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             {/* Agent Selection */}
             <Card>
               <CardHeader>
-                <CardTitle>选择参与智能体</CardTitle>
-                <CardDescription>至少选择 2 个智能体参与讨论</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>选择参与智能体</CardTitle>
+                    <CardDescription>至少选择 2 个智能体参与讨论</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                    >
+                      全选
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDeselectAll}
+                    >
+                      取消全选
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
@@ -159,16 +224,21 @@ export default function NewDebate() {
             <Card>
               <CardHeader>
                 <CardTitle>讨论轮数</CardTitle>
-                <CardDescription>设置讨论的轮数（1-10 轮）</CardDescription>
+                <CardDescription>设置讨论的轮数（1-99 轮）</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
                   <Input
                     type="number"
                     min={1}
-                    max={10}
+                    max={99}
                     value={maxRounds}
-                    onChange={(e) => setMaxRounds(parseInt(e.target.value) || 5)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val >= 1 && val <= 99) {
+                        setMaxRounds(val);
+                      }
+                    }}
                     className="w-24"
                   />
                   <span className="text-sm text-muted-foreground">
