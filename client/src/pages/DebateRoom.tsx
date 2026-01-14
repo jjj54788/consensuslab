@@ -53,6 +53,20 @@ export default function DebateRoom() {
     return agents.filter((agent) => session.agentIds.includes(agent.id));
   }, [agents, session]);
 
+  const groupedAgents = useMemo(() => {
+    const groups: Record<string, typeof selectedAgents> = {
+      '观点论证组': [],
+      '质量评估组': [],
+      '专业分析组': []
+    };
+    selectedAgents.forEach(agent => {
+      if (groups[agent.category]) {
+        groups[agent.category].push(agent);
+      }
+    });
+    return groups;
+  }, [selectedAgents]);
+
   const utils = trpc.useUtils();
 
   const handleExport = async (format: 'markdown' | 'pdf') => {
@@ -225,41 +239,51 @@ export default function DebateRoom() {
           </CardContent>
         </Card>
 
-        {/* Agent Status Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          {selectedAgents.map((agent) => {
-            const status = agentStatuses[agent.id] || "idle";
-            const statusInfo = getStatusBadge(status);
-            const isActive = status === "thinking" || status === "speaking";
-            
+        {/* Agent Status Cards - Grouped by Category */}
+        <div className="space-y-6 mb-6">
+          {Object.entries(groupedAgents).map(([category, agents]) => {
+            if (agents.length === 0) return null;
             return (
-              <Card 
-                key={agent.id} 
-                className={`transition-all duration-300 ${isActive ? 'ring-2 ring-offset-2' : ''}`}
-                style={{ 
-                  boxShadow: isActive ? `0 0 20px ${agent.color}40` : undefined 
-                }}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${isActive ? 'animate-pulse' : ''}`}
-                      style={{ backgroundColor: agent.color }}
-                    >
-                      {agent.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{agent.name}</div>
-                      <Badge variant={statusInfo.variant} className="text-xs mt-1">
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground line-clamp-2">
-                    {agent.profile}
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={category}>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">{category}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {agents.map((agent) => {
+                    const status = agentStatuses[agent.id] || "idle";
+                    const statusInfo = getStatusBadge(status);
+                    const isActive = status === "thinking" || status === "speaking";
+                    
+                    return (
+                      <Card 
+                        key={agent.id} 
+                        className={`transition-all duration-300 ${isActive ? 'ring-2 ring-offset-2' : ''}`}
+                        style={{ 
+                          boxShadow: isActive ? `0 0 20px ${agent.color}40` : undefined 
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${isActive ? 'animate-pulse' : ''}`}
+                              style={{ backgroundColor: agent.color }}
+                            >
+                              {agent.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{agent.name}</div>
+                              <Badge variant={statusInfo.variant} className="text-xs mt-1">
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground line-clamp-2">
+                            {agent.profile}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>

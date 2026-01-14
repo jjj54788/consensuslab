@@ -271,10 +271,12 @@ ${conversation}${highlightsContext}
   "keyPoints": ["关键观点1", "关键观点2", "关键观点3"],
   "consensus": "主要共识和一致意见",
   "disagreements": ["分歧点1", "分歧点2"],
-  "bestViewpoint": "讨论中最有说服力和逻辑严密的论点",
-  "mostInnovative": "最具创新性或新颖的想法",
-  "goldenQuotes": ["精彩金句1", "精彩金句2", "精彩金句3"]
-}`;
+  "bestViewpoint": "智能体名称：讨论中最有说服力和逻辑严密的论点内容",
+  "mostInnovative": "智能体名称：最具创新性或新颖的想法内容",
+  "goldenQuotes": ["智能体名称：精彩金句1", "智能体名称：精彩金句2", "智能体名称：精彩金句3"]
+}
+
+注意：bestViewpoint、mostInnovative和goldenQuotes中都必须包含发言者的智能体名称，格式为"智能体名称：内容"。`;
 
   try {
     // Get user's active AI provider config
