@@ -24,6 +24,7 @@ import {
   deleteAIProviderConfig,
   setActiveProvider,
 } from "./aiProviderDb";
+import { exportToMarkdown, exportToPDF } from "./exportDebate";
 
 export const appRouter = router({
   system: systemRouter,
@@ -219,6 +220,20 @@ export const appRouter = router({
       .input(z.object({ sessionId: z.string() }))
       .query(async ({ input }) => {
         return await getSessionMessages(input.sessionId);
+      }),
+
+    exportMarkdown: protectedProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        const markdown = await exportToMarkdown(input.sessionId);
+        return { content: markdown, filename: `debate-${input.sessionId}.md` };
+      }),
+
+    exportPDF: protectedProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        const html = await exportToPDF(input.sessionId);
+        return { content: html, filename: `debate-${input.sessionId}.html` };
       }),
   }),
 });

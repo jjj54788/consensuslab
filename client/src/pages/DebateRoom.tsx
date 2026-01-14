@@ -1,5 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
 import { useDebateSocket } from "@/hooks/useDebateSocket";
-import { ArrowLeft, Loader2, Play, CheckCircle2, TrendingUp, Sparkles, Quote } from "lucide-react";
+import { ArrowLeft, Loader2, Play, CheckCircle2, TrendingUp, Sparkles, Quote, Download } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -46,6 +52,43 @@ export default function DebateRoom() {
     if (!agents || !session) return [];
     return agents.filter((agent) => session.agentIds.includes(agent.id));
   }, [agents, session]);
+
+  const utils = trpc.useUtils();
+
+  const handleExport = async (format: 'markdown' | 'pdf') => {
+    if (!sessionId) return;
+
+    try {
+      if (format === 'markdown') {
+        const result = await utils.debate.exportMarkdown.fetch({ sessionId });
+        const blob = new Blob([result.content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Markdown 文件已导出');
+      } else if (format === 'pdf') {
+        const result = await utils.debate.exportPDF.fetch({ sessionId });
+        const blob = new Blob([result.content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('HTML 文件已导出，可使用浏览器打印为PDF');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('导出失败，请稍后重试');
+    }
+  };
 
   const getAgentById = (id: string) => {
     return selectedAgents.find((agent) => agent.id === id);
@@ -110,6 +153,24 @@ export default function DebateRoom() {
               <Badge variant={connected ? "default" : "secondary"}>
                 {connected ? "已连接" : "未连接"}
               </Badge>
+              {isCompleted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      导出
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport('markdown')}>
+                      导出为 Markdown
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      导出为 PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               {canStart && (
                 <Button onClick={startDebate} size="sm">
                   <Play className="h-4 w-4 mr-2" />
