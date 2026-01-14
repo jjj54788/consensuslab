@@ -15,14 +15,16 @@ import { trpc } from "@/lib/trpc";
 import { useDebateSocket } from "@/hooks/useDebateSocket";
 import { ArrowLeft, Loader2, Play, CheckCircle2, TrendingUp, Sparkles, Quote, Download } from "lucide-react";
 import { Link, useParams } from "wouter";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { DebateTimeline } from "@/components/DebateTimeline";
+import { DebateReplay } from "@/components/DebateReplay";
 
 export default function DebateRoom() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { user, loading: authLoading } = useAuth();
+  const [isReplayMode, setIsReplayMode] = useState(false);
 
   const { data: session, isLoading: sessionLoading } = trpc.debate.get.useQuery(
     { sessionId: sessionId! },
@@ -168,7 +170,16 @@ export default function DebateRoom() {
                 {connected ? "已连接" : "未连接"}
               </Badge>
               {isCompleted && (
-                <DropdownMenu>
+                <>
+                  <Button 
+                    variant={isReplayMode ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => setIsReplayMode(!isReplayMode)}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    {isReplayMode ? "退出回放" : "回放讨论"}
+                  </Button>
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4 mr-2" />
@@ -184,6 +195,7 @@ export default function DebateRoom() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </>
               )}
               {canStart && (
                 <Button onClick={startDebate} size="sm">
@@ -321,10 +333,18 @@ export default function DebateRoom() {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[800px] pr-4">
-                <DebateTimeline
-                  messages={messages}
-                  getAgentById={getAgentById}
-                />
+                {isReplayMode ? (
+                  <DebateReplay
+                    messages={messages}
+                    getAgentById={getAgentById}
+                    onExit={() => setIsReplayMode(false)}
+                  />
+                ) : (
+                  <DebateTimeline
+                    messages={messages}
+                    getAgentById={getAgentById}
+                  />
+                )}
               </ScrollArea>
             </CardContent>
           </Card>

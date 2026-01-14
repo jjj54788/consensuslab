@@ -21,12 +21,12 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
   const rounds = Object.keys(messagesByRound).sort((a, b) => Number(a) - Number(b));
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {rounds.map((roundNum) => {
         const roundMessages = messagesByRound[Number(roundNum)];
         
         return (
-          <div key={roundNum} className="space-y-6">
+          <div key={roundNum} className="space-y-4">
             {/* Round Header */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
@@ -39,7 +39,7 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
             </div>
 
             {/* Messages in this round */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {roundMessages.map((message: any, idx: number) => {
                 const agent = getAgentById(message.sender);
                 const isLeft = idx % 2 === 0;
@@ -54,7 +54,7 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
                     {/* Agent Avatar with Glow */}
                     <div className="flex-shrink-0">
                       <div 
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-offset-2 ring-offset-background transition-transform hover:scale-110"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-2 ring-offset-2 ring-offset-background transition-transform hover:scale-110"
                         style={{ 
                           backgroundColor: agent?.color || '#999',
                           boxShadow: `0 0 20px ${agent?.color}40`
@@ -65,13 +65,13 @@ export function DebateTimeline({ messages, getAgentById }: DebateTimelineProps) 
                     </div>
 
                     {/* Message Card */}
-                    <Card className={`flex-1 max-w-3xl border-2 transition-all hover:shadow-lg ${
+                    <Card className={`flex-1 max-w-2xl border-2 transition-all hover:shadow-lg ${
                       hasScores && message.totalScore >= 24 ? 'border-yellow-400/50 bg-yellow-50/50 dark:bg-yellow-900/10' : ''
                     }`}>
-                      <div className="p-5 space-y-4">
+                      <div className="p-4 space-y-3">
                         {/* Agent Name and Role */}
                         <div className={`flex items-center gap-3 ${isLeft ? '' : 'flex-row-reverse'}`}>
-                          <span className="font-bold text-base" style={{ color: agent?.color }}>
+                          <span className="font-bold text-sm" style={{ color: agent?.color }}>
                             {agent?.name || '未知智能体'}
                           </span>
                           <Badge variant="outline" className="text-xs">
