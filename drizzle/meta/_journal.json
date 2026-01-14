@@ -64,6 +64,13 @@
       "when": 1768352557711,
       "tag": "0008_fresh_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1768372964114,
+      "tag": "0009_ordinary_grim_reaper",
+      "breakpoints": true
     }
   ]
 }
