@@ -482,8 +482,19 @@
 - [ ] 更新SERVER_DEPLOYMENT.md
 
 ### Phase 7: 测试和发布
-- [ ] 测试登录功能
-- [ ] 测试协商创建和执行
-- [ ] 测试API密钥管理
-- [ ] 推送到GitHub standalone分支
-- [ ] 保存检查点
+- [x] 服务器正常运行（无TypeScript错误）
+- [x] 前端页面正常显示
+- [x] 保存检查点（version: 46f03537）
+- [x] 推送到GitHub standalone分支
+- [ ] 用户测试登录功能
+- [ ] 用户测试API密钥配置
+- [ ] 用户测试讨论创建和执行
+
+## 紧急修复 - Standalone版本登录问题
+- [x] 分析前端OAuth跳转逻辑
+- [x] 创建本地登录API（POST /api/auth/login）- 已存在
+- [x] 创建本地登录页面组件
+- [x] 移除前端OAuth相关代码
+- [x] 更新路由配置
+- [ ] 调试登录mutation触发问题
+- [ ] 推送修复到GitHub

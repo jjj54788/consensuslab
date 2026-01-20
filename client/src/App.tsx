@@ -11,11 +11,13 @@ import DebateRoom from "./pages/DebateRoom";
 import DebateList from "./pages/DebateList";
 import Templates from "./pages/Templates";
 import ApiKeyManagement from "./pages/ApiKeyManagement";
+import Login from "./pages/Login";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/login"} component={Login} />
       <Route path={"/settings/ai-providers"} component={AIProviderSettings} />
       <Route path={"/settings/api-keys"} component={ApiKeyManagement} />
       <Route path="/debates/new" component={NewDebate} />      <Route path="/debates/:sessionId" component={DebateRoom} />

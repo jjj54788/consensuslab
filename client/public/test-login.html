@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Test</title>
+</head>
+<body>
+  <h1>Login Test</h1>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Username" value="admin" /><br/>
+    <input type="password" id="password" placeholder="Password" value="admin123" /><br/>
+    <button type="submit">Login</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      console.log('Submitting login...', { username, password });
+      
+      try {
+        const response = await fetch('/api/trpc/auth.login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            '0': {
+              json: {
+                username,
+                password
+              }
+            }
+          })
+        });
+        
+        const data = await response.json();
+        console.log('Response:', data);
+        document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        
+        if (data.result) {
+          alert('Login successful!');
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('result').innerHTML = '<pre>Error: ' + error.message + '</pre>';
+      }
+    });
+  </script>
+</body>
+</html>
