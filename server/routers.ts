@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { verifyAdminCredentials, generateToken, getAdminUser } from "./_core/auth-standalone";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
@@ -41,6 +42,37 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    login: publicProcedure
+      .input(
+        z.object({
+          username: z.string().min(1),
+          password: z.string().min(1),
+        })
+      )
+      .mutation(({ ctx, input }) => {
+        // Verify admin credentials
+        if (!verifyAdminCredentials(input.username, input.password)) {
+          throw new Error("Invalid username or password");
+        }
+
+        // Get admin user
+        const user = getAdminUser();
+
+        // Generate JWT token
+        const token = generateToken(user);
+
+        // Set cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, {
+          ...cookieOptions,
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+
+        return {
+          success: true,
+          user,
+        };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
