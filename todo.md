@@ -450,27 +450,36 @@
 - [ ] 移除用户注册功能
 
 ### Phase 3: LLM API直接调用
-- [ ] 修改server/_core/llm.ts直接调用OpenAI API
-- [ ] 添加Claude API支持
-- [ ] 从用户API密钥表读取配置
-- [ ] 更新协商执行逻辑
+- [x] 修改server/_core/llm.ts直接调用OpenAI API
+- [x] 添加Claude API支持
+- [x] 从用户API密钥表读取配置
+- [x] 更新协商执行逻辑
+- [x] 移除Manus LLM服务依赖
 
 ### Phase 4: 本地文件存储
-- [ ] 实现本地文件上传API
-- [ ] 配置静态文件服务
-- [ ] 更新存储相关代码
+- [x] 核心功能不需要文件存储（已确认）
+- [x] 禁用storage.ts中的Manus存储依赖
 
 ### Phase 5: 清理Manus依赖
-- [ ] 移除Manus通知服务代码
-- [ ] 移除Manus分析服务代码
-- [ ] 清理未使用的环境变量
-- [ ] 更新.env.example
+- [x] 移除Manus通知服务代码（notification.ts）
+- [x] 移除Manus LLM服务代码（llm.ts）
+- [x] 移除Manus存储服务代码（storage.ts）
+- [x] 移除Manus OAuth代码（oauth.ts, sdk.ts）
+- [x] 移除Manus图片生成代码（imageGeneration.ts）
+- [x] 移除Manus语音转录代码（voiceTranscription.ts）
+- [x] 移除Manus地图服务代码（map.ts）
+- [x] 移除Manus数据API代码（dataApi.ts）
+- [x] 清理环境变量配置（env.ts）
+- [x] 更新认证系统使用standalone版本（context.ts）
 
 ### Phase 6: 部署文档更新
+- [x] 创建README-STANDALONE.md
+- [x] 包含快速开始指南
+- [x] 包含API密钥配置说明
+- [x] 包含Docker部署指南
+- [x] 包含故障排查说明
 - [ ] 更新deploy.sh脚本
 - [ ] 更新SERVER_DEPLOYMENT.md
-- [ ] 创建STANDALONE_README.md
-- [ ] 更新环境变量说明
 
 ### Phase 7: 测试和发布
 - [ ] 测试登录功能

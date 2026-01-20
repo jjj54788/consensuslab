@@ -54,10 +54,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
     }
+    // Standalone version: first user becomes admin
+    // Or set role based on environment variable
+    // (ownerOpenId check removed for standalone version)
 
     if (!values.lastSignedIn) {
       values.lastSignedIn = new Date();
@@ -260,4 +260,167 @@ export async function deleteDebateTemplate(
         eq(debateTemplates.userId, userId)
       )
     );
+}
+
+// ==================== API Keys & Model Management ====================
+
+/**
+ * Get all model providers
+ */
+export async function getAllModelProviders() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { modelProviders } = await import("../drizzle/schema");
+  return db.select().from(modelProviders).where(eq(modelProviders.isActive, true));
+}
+
+/**
+ * Get models by provider ID
+ */
+export async function getModelsByProviderId(providerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { models } = await import("../drizzle/schema");
+  return db.select().from(models).where(eq(models.providerId, providerId));
+}
+
+/**
+ * Get all active models
+ */
+export async function getAllActiveModels() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { models } = await import("../drizzle/schema");
+  return db.select().from(models).where(eq(models.isActive, true));
+}
+
+/**
+ * Get user API keys
+ */
+export async function getUserApiKeys(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { userApiKeys, modelProviders } = await import("../drizzle/schema");
+  
+  // Join with model providers to get provider details
+  const results = await db
+    .select({
+      id: userApiKeys.id,
+      userId: userApiKeys.userId,
+      providerId: userApiKeys.providerId,
+      providerName: modelProviders.name,
+      providerDisplayName: modelProviders.displayName,
+      apiKeyEncrypted: userApiKeys.apiKeyEncrypted,
+      isActive: userApiKeys.isActive,
+      createdAt: userApiKeys.createdAt,
+      updatedAt: userApiKeys.updatedAt,
+    })
+    .from(userApiKeys)
+    .leftJoin(modelProviders, eq(userApiKeys.providerId, modelProviders.id))
+    .where(eq(userApiKeys.userId, userId));
+  
+  return results;
+}
+
+/**
+ * Add or update user API key
+ */
+export async function upsertUserApiKey(data: {
+  userId: number;
+  providerId: number;
+  apiKeyEncrypted: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { userApiKeys } = await import("../drizzle/schema");
+  const { and } = await import("drizzle-orm");
+  
+  // Check if key already exists
+  const existing = await db
+    .select()
+    .from(userApiKeys)
+    .where(
+      and(
+        eq(userApiKeys.userId, data.userId),
+        eq(userApiKeys.providerId, data.providerId)
+      )
+    )
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Update existing key
+    await db
+      .update(userApiKeys)
+      .set({
+        apiKeyEncrypted: data.apiKeyEncrypted,
+        isActive: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(userApiKeys.id, existing[0].id));
+    
+    return existing[0].id;
+  } else {
+    // Insert new key
+    const result = await db.insert(userApiKeys).values({
+      userId: data.userId,
+      providerId: data.providerId,
+      apiKeyEncrypted: data.apiKeyEncrypted,
+      isActive: true,
+    });
+    
+    return result[0].insertId;
+  }
+}
+
+/**
+ * Delete user API key
+ */
+export async function deleteUserApiKey(keyId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { userApiKeys } = await import("../drizzle/schema");
+  const { and } = await import("drizzle-orm");
+  
+  await db
+    .delete(userApiKeys)
+    .where(
+      and(
+        eq(userApiKeys.id, keyId),
+        eq(userApiKeys.userId, userId)
+      )
+    );
+}
+
+/**
+ * Get decrypted API key for a user and provider
+ */
+export async function getDecryptedApiKey(userId: number, providerId: number): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const { userApiKeys } = await import("../drizzle/schema");
+  const { and } = await import("drizzle-orm");
+  const { decryptApiKey } = await import("./apiKeyEncryption");
+  
+  const results = await db
+    .select()
+    .from(userApiKeys)
+    .where(
+      and(
+        eq(userApiKeys.userId, userId),
+        eq(userApiKeys.providerId, providerId),
+        eq(userApiKeys.isActive, true)
+      )
+    )
+    .limit(1);
+  
+  if (results.length === 0) return null;
+  
+  return decryptApiKey(results[0].apiKeyEncrypted);
 }

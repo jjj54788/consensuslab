@@ -1,21 +1,13 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
-
-import { ENV } from './_core/env';
+// Standalone version - Storage functionality disabled
+// For file storage needs, implement local filesystem or configure S3
 
 type StorageConfig = { baseUrl: string; apiKey: string };
 
 function getStorageConfig(): StorageConfig {
-  const baseUrl = ENV.forgeApiUrl;
-  const apiKey = ENV.forgeApiKey;
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
-  }
-
-  return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
+  throw new Error(
+    "Storage functionality is not available in standalone version. " +
+    "Please implement local filesystem storage or configure your own S3 bucket."
+  );
 }
 
 function buildUploadUrl(baseUrl: string, relKey: string): URL {

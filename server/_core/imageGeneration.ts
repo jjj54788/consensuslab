@@ -1,92 +1,49 @@
 /**
- * Image generation helper using internal ImageService
- *
- * Example usage:
- *   const { url: imageUrl } = await generateImage({
- *     prompt: "A serene landscape with mountains"
- *   });
- *
- * For editing:
- *   const { url: imageUrl } = await generateImage({
- *     prompt: "Add a rainbow to this landscape",
- *     originalImages: [{
- *       url: "https://example.com/original.jpg",
- *       mimeType: "image/jpeg"
- *     }]
- *   });
+ * Image Generation Service (Standalone Version - Disabled)
+ * 
+ * This feature is disabled in standalone version.
+ * To enable, implement your own integration with DALL-E, Stable Diffusion, or similar services.
  */
-import { storagePut } from "server/storage";
-import { ENV } from "./env";
 
 export type GenerateImageOptions = {
   prompt: string;
   originalImages?: Array<{
-    url?: string;
-    b64Json?: string;
-    mimeType?: string;
+    url: string;
+    mimeType: string;
   }>;
 };
 
-export type GenerateImageResponse = {
-  url?: string;
+export type GenerateImageResult = {
+  url: string;
 };
 
+/**
+ * Generate an image from a text prompt (Standalone version - not implemented)
+ * 
+ * To implement this feature:
+ * 1. Install OpenAI SDK: pnpm add openai
+ * 2. Get API key from https://platform.openai.com/api-keys
+ * 3. Call DALL-E API directly
+ * 
+ * Example implementation:
+ * ```typescript
+ * import OpenAI from "openai";
+ * const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+ * const response = await openai.images.generate({
+ *   model: "dall-e-3",
+ *   prompt: options.prompt,
+ *   n: 1,
+ *   size: "1024x1024",
+ * });
+ * return { url: response.data[0].url };
+ * ```
+ */
 export async function generateImage(
   options: GenerateImageOptions
-): Promise<GenerateImageResponse> {
-  if (!ENV.forgeApiUrl) {
-    throw new Error("BUILT_IN_FORGE_API_URL is not configured");
-  }
-  if (!ENV.forgeApiKey) {
-    throw new Error("BUILT_IN_FORGE_API_KEY is not configured");
-  }
-
-  // Build the full URL by appending the service path to the base URL
-  const baseUrl = ENV.forgeApiUrl.endsWith("/")
-    ? ENV.forgeApiUrl
-    : `${ENV.forgeApiUrl}/`;
-  const fullUrl = new URL(
-    "images.v1.ImageService/GenerateImage",
-    baseUrl
-  ).toString();
-
-  const response = await fetch(fullUrl, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      "connect-protocol-version": "1",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
-    body: JSON.stringify({
-      prompt: options.prompt,
-      original_images: options.originalImages || [],
-    }),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(
-      `Image generation request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-    );
-  }
-
-  const result = (await response.json()) as {
-    image: {
-      b64Json: string;
-      mimeType: string;
-    };
-  };
-  const base64Data = result.image.b64Json;
-  const buffer = Buffer.from(base64Data, "base64");
-
-  // Save to S3
-  const { url } = await storagePut(
-    `generated/${Date.now()}.png`,
-    buffer,
-    result.image.mimeType
+): Promise<GenerateImageResult> {
+  throw new Error(
+    "Image generation is not available in standalone version. " +
+    "Please implement your own DALL-E or Stable Diffusion integration. " +
+    "See comments in imageGeneration.ts for example code."
   );
-  return {
-    url,
-  };
 }

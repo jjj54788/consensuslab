@@ -79,11 +79,18 @@ Be concise but impactful. (100-150 words)`}`;
     // Get user's active AI provider config
     const providerConfig = await getActiveAIProvider(userId);
     
+    // Standalone version: require user to configure API key
+    if (!providerConfig) {
+      throw new Error(
+        "No AI provider configured. Please configure your OpenAI or Claude API key in AI Settings before starting a debate."
+      );
+    }
+    
     const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
+      provider: providerConfig.provider,
+      apiKey: providerConfig.apiKey || undefined,
+      baseURL: providerConfig.baseURL || undefined,
+      model: providerConfig.model || undefined,
     };
 
     const response = await AIProviderService.chat(
@@ -282,11 +289,18 @@ ${conversation}${highlightsContext}
     // Get user's active AI provider config
     const providerConfig = await getActiveAIProvider(userId);
     
+    // Standalone version: require user to configure API key
+    if (!providerConfig) {
+      throw new Error(
+        "No AI provider configured. Please configure your OpenAI or Claude API key in AI Settings before starting a debate."
+      );
+    }
+    
     const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
+      provider: providerConfig.provider,
+      apiKey: providerConfig.apiKey || undefined,
+      baseURL: providerConfig.baseURL || undefined,
+      model: providerConfig.model || undefined,
     };
 
     const response = await AIProviderService.chat(

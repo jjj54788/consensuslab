@@ -6,12 +6,10 @@
 import * as jwt from "jsonwebtoken";
 import { ENV } from "./env";
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: "admin";
-}
+// Import User type from database schema
+import type { User as DBUser } from "../../drizzle/schema";
+
+export type User = DBUser;
 
 // Admin credentials from environment variables
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
@@ -35,7 +33,8 @@ export function generateToken(user: User): string {
   return jwt.sign(
     {
       id: user.id,
-      username: user.username,
+      openId: user.openId,
+      name: user.name,
       email: user.email,
       role: user.role,
     },
@@ -61,10 +60,15 @@ export function verifyToken(token: string): User | null {
  */
 export function getAdminUser(): User {
   return {
-    id: "admin",
-    username: ADMIN_USERNAME,
+    id: 1,
+    openId: "admin",
+    name: ADMIN_USERNAME,
     email: ADMIN_EMAIL,
+    loginMethod: "standalone",
     role: "admin",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSignedIn: new Date(),
   };
 }
 

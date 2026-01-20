@@ -19,19 +19,11 @@ type MapsConfig = {
 };
 
 function getMapsConfig(): MapsConfig {
-  const baseUrl = ENV.forgeApiUrl;
-  const apiKey = ENV.forgeApiKey;
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Google Maps proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
-  }
-
-  return {
-    baseUrl: baseUrl.replace(/\/+$/, ""),
-    apiKey,
-  };
+  // Standalone version: Google Maps integration disabled
+  throw new Error(
+    "Google Maps integration is not available in standalone version. " +
+    "Please get your own Google Maps API key and implement direct API calls."
+  );
 }
 
 // ============================================================================

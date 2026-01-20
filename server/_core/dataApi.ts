@@ -1,64 +1,32 @@
 /**
- * Quick example (matches curl usage):
- *   await callDataApi("Youtube/search", {
- *     query: { gl: "US", hl: "en", q: "manus" },
- *   })
+ * Data API Service (Standalone Version - Disabled)
+ * 
+ * This feature is disabled in standalone version.
+ * Implement direct API calls to external services as needed.
  */
-import { ENV } from "./env";
 
-export type DataApiCallOptions = {
-  query?: Record<string, unknown>;
+export type CallApiOptions = {
+  query?: Record<string, string>;
   body?: Record<string, unknown>;
-  pathParams?: Record<string, unknown>;
-  formData?: Record<string, unknown>;
+  pathParams?: Record<string, string>;
+  formData?: Record<string, string>;
 };
 
-export async function callDataApi(
+export type CallApiResult = {
+  status: number;
+  headers: Record<string, string>;
+  body: unknown;
+};
+
+/**
+ * Call external API (Standalone version - not implemented)
+ */
+export async function callApi(
   apiId: string,
-  options: DataApiCallOptions = {}
-): Promise<unknown> {
-  if (!ENV.forgeApiUrl) {
-    throw new Error("BUILT_IN_FORGE_API_URL is not configured");
-  }
-  if (!ENV.forgeApiKey) {
-    throw new Error("BUILT_IN_FORGE_API_KEY is not configured");
-  }
-
-  // Build the full URL by appending the service path to the base URL
-  const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
-  const fullUrl = new URL("webdevtoken.v1.WebDevService/CallApi", baseUrl).toString();
-
-  const response = await fetch(fullUrl, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      "connect-protocol-version": "1",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
-    body: JSON.stringify({
-      apiId,
-      query: options.query,
-      body: options.body,
-      path_params: options.pathParams,
-      multipart_form_data: options.formData,
-    }),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(
-      `Data API request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-    );
-  }
-
-  const payload = await response.json().catch(() => ({}));
-  if (payload && typeof payload === "object" && "jsonData" in payload) {
-    try {
-      return JSON.parse((payload as Record<string, string>).jsonData ?? "{}");
-    } catch {
-      return (payload as Record<string, unknown>).jsonData;
-    }
-  }
-  return payload;
+  options: CallApiOptions = {}
+): Promise<CallApiResult> {
+  throw new Error(
+    "Data API service is not available in standalone version. " +
+    "Please implement direct API calls to external services as needed."
+  );
 }

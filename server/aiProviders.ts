@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+// Standalone version - no Manus LLM dependency
 
 export type AIProvider = "manus" | "openai" | "anthropic" | "custom";
 
@@ -50,31 +50,16 @@ export class AIProviderService {
   }
 
   /**
-   * Use Manus built-in LLM service
+   * Standalone version: Manus provider not supported
+   * Users must configure OpenAI or Claude API keys
    */
   private static async chatWithManus(
     messages: ChatMessage[]
   ): Promise<ChatCompletionResponse> {
-    const response = await invokeLLM({
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    });
-
-    const messageContent = response.choices[0]?.message?.content;
-    const content = typeof messageContent === "string" ? messageContent : "";
-    
-    return {
-      content,
-      usage: response.usage
-        ? {
-            promptTokens: response.usage.prompt_tokens,
-            completionTokens: response.usage.completion_tokens,
-            totalTokens: response.usage.total_tokens,
-          }
-        : undefined,
-    };
+    throw new Error(
+      "Manus LLM service is not available in standalone version. " +
+      "Please configure your own OpenAI or Claude API key in AI Settings."
+    );
   }
 
   /**
