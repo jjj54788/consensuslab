@@ -5,7 +5,7 @@
 
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import jwt from "jsonwebtoken";
+import { sign as signJwt, verify as verifyJwt } from "jsonwebtoken";
 import { users, type User, type UserRecord } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { ENV } from "./env";
@@ -152,7 +152,7 @@ export async function verifyAdminCredentials(
  * Generate JWT token for authenticated user
  */
 export function generateToken(user: User): string {
-  return jwt.sign(
+  return signJwt(
     {
       id: user.id,
       openId: user.openId,
@@ -170,7 +170,7 @@ export function generateToken(user: User): string {
  */
 export function verifyToken(token: string): User | null {
   try {
-    const decoded = jwt.verify(token, ENV.cookieSecret) as User;
+    const decoded = verifyJwt(token, ENV.cookieSecret) as User;
     return decoded;
   } catch (error) {
     return null;
