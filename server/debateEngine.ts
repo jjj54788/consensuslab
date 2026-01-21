@@ -78,13 +78,15 @@ Be concise but impactful. (100-150 words)`}`;
   try {
     // Get user's active AI provider config
     const providerConfig = await getActiveAIProvider(userId);
-    
+
     const aiConfig: AIProviderConfig = {
       provider: providerConfig?.provider || "manus",
       apiKey: providerConfig?.apiKey || undefined,
       baseURL: providerConfig?.baseURL || undefined,
       model: providerConfig?.model || undefined,
     };
+
+    console.log(`[DebateEngine] Generating response for ${agent.name} using provider: ${aiConfig.provider}`);
 
     const response = await AIProviderService.chat(
       [
@@ -94,9 +96,19 @@ Be concise but impactful. (100-150 words)`}`;
       aiConfig
     );
 
+    console.log(`[DebateEngine] Response generated successfully for ${agent.name}`);
     return response.content || "I have no response at this time.";
   } catch (error) {
     console.error(`[DebateEngine] Error generating response for ${agent.name}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Provide helpful error message if AI provider is not configured
+    if (errorMessage.includes("OPENAI_API_KEY is not configured") || errorMessage.includes("API key")) {
+      throw new Error(
+        "AI Provider not configured. Please add your OpenAI or Claude API key in Settings > AI Provider Settings before starting a debate."
+      );
+    }
+
     throw error;
   }
 }
@@ -281,13 +293,15 @@ ${conversation}${highlightsContext}
   try {
     // Get user's active AI provider config
     const providerConfig = await getActiveAIProvider(userId);
-    
+
     const aiConfig: AIProviderConfig = {
       provider: providerConfig?.provider || "manus",
       apiKey: providerConfig?.apiKey || undefined,
       baseURL: providerConfig?.baseURL || undefined,
       model: providerConfig?.model || undefined,
     };
+
+    console.log(`[DebateEngine] Generating summary using provider: ${aiConfig.provider}`);
 
     const response = await AIProviderService.chat(
       [
@@ -307,17 +321,19 @@ ${conversation}${highlightsContext}
 
     // Clean up markdown code blocks if present
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
+
     const parsed = JSON.parse(cleanContent);
-    
+
     // Ensure consensus is a string (join array if needed)
     if (Array.isArray(parsed.consensus)) {
       parsed.consensus = parsed.consensus.join('; ');
     }
-    
+
+    console.log("[DebateEngine] Summary generated successfully");
     return parsed;
   } catch (error) {
     console.error("[DebateEngine] Error generating summary:", error);
+    console.error("[DebateEngine] Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return {
       summary: "Unable to generate summary at this time.",
       keyPoints: [],
@@ -338,25 +354,34 @@ export async function runDebateSession(
   onMessageCreated?: (message: Message) => void,
   onRoundComplete?: (round: number) => void
 ): Promise<void> {
+  console.log(`[DebateEngine] ===== Starting debate session ${sessionId} =====`);
+  console.log(`[DebateEngine] Topic: ${context.topic}`);
+  console.log(`[DebateEngine] Agents: ${context.agents.length}, MaxRounds: ${context.maxRounds}`);
+
   try {
     // Update session status to running
+    console.log(`[DebateEngine] Updating session status to 'running'`);
     await updateDebateSession(sessionId, { status: "running" });
 
     // Execute all rounds
     for (let round = 1; round <= context.maxRounds; round++) {
+      console.log(`[DebateEngine] ===== Starting round ${round}/${context.maxRounds} =====`);
       context.currentRound = round;
       await updateDebateSession(sessionId, { currentRound: round });
 
       await executeDebateRound(sessionId, context, userId, onAgentStatusChange, onMessageCreated);
 
+      console.log(`[DebateEngine] Round ${round} completed successfully`);
       onRoundComplete?.(round);
     }
 
     // Generate summary
+    console.log(`[DebateEngine] All rounds completed. Generating summary...`);
     const allMessages = await getSessionMessages(sessionId);
     const summary = await generateDebateSummary(context.topic, context.agents, allMessages, userId);
 
     // Update session with summary and mark as completed
+    console.log(`[DebateEngine] Updating session with summary and marking as completed`);
     await updateDebateSession(sessionId, {
       status: "completed",
       summary: summary.summary,
@@ -371,9 +396,16 @@ export async function runDebateSession(
 
     // Set all agents to idle
     context.agents.forEach((agent) => onAgentStatusChange?.(agent.id, "idle"));
+    console.log(`[DebateEngine] ===== Debate session ${sessionId} completed successfully =====`);
   } catch (error) {
-    console.error("[DebateEngine] Error running debate session:", error);
+    console.error(`[DebateEngine] ===== ERROR in debate session ${sessionId} =====`);
+    console.error("[DebateEngine] Error details:", error);
+    console.error("[DebateEngine] Error stack:", error instanceof Error ? error.stack : "No stack trace");
     await updateDebateSession(sessionId, { status: "error" });
+
+    // Set all agents to idle on error
+    context.agents.forEach((agent) => onAgentStatusChange?.(agent.id, "idle"));
+
     throw error;
   }
 }

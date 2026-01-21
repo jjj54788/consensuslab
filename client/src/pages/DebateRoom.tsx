@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
 import { useDebateSocket } from "@/hooks/useDebateSocket";
-import { ArrowLeft, Loader2, Play, CheckCircle2, TrendingUp, Sparkles, Quote, Download } from "lucide-react";
+import { ArrowLeft, Loader2, Play, CheckCircle2, TrendingUp, Sparkles, Quote, Download, AlertTriangle } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,9 @@ export default function DebateRoom() {
   );
 
   const { data: agents } = trpc.agents.list.useQuery();
+  const { data: activeProvider } = trpc.aiProvider.getActive.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   const {
     connected,
@@ -218,6 +222,22 @@ export default function DebateRoom() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* AI Provider Warning */}
+        {user && !activeProvider && canStart && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>需要配置 AI 提供商</AlertTitle>
+            <AlertDescription>
+              在开始讨论之前，您需要先配置 AI 提供商（OpenAI 或 Claude API 密钥）。
+              <Link href="/settings/api-keys">
+                <Button variant="link" className="px-2 h-auto">
+                  点击这里前往设置
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Topic and Progress Section */}

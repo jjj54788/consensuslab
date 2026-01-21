@@ -90,6 +90,7 @@ export function useDebateSocket(sessionId: string | null) {
         sessionId
       });
       setConnected(true);
+      console.log("[WebSocket] Emitting 'join-debate' event for session:", sessionId);
       newSocket.emit("join-debate", sessionId);
     });
 
@@ -105,6 +106,7 @@ export function useDebateSocket(sessionId: string | null) {
     });
 
     newSocket.on("agent-status", (data: AgentStatusUpdate) => {
+      console.log("[WebSocket] Received agent-status:", data);
       setAgentStatuses((prev) => ({
         ...prev,
         [data.agentId]: data.status,
@@ -117,6 +119,7 @@ export function useDebateSocket(sessionId: string | null) {
     });
 
     newSocket.on("new-message", (message: Message) => {
+      console.log("[WebSocket] Received new-message:", message);
       setMessages((prev) => [...prev, message]);
     });
 
@@ -141,15 +144,28 @@ export function useDebateSocket(sessionId: string | null) {
   }, [sessionId]);
 
   const startDebate = () => {
-    if (socket && sessionId) {
-      setMessages([]);
-      setAgentStatuses({});
-      setCurrentRound(0);
-      setIsDebateComplete(false);
-      setCompletedSession(null);
-      setError(null);
-      socket.emit("start-debate", sessionId);
+    if (!socket) {
+      console.error("[useDebateSocket] Cannot start debate: socket is null");
+      setError("Not connected to server");
+      return;
     }
+    if (!sessionId) {
+      console.error("[useDebateSocket] Cannot start debate: sessionId is null");
+      setError("No session ID");
+      return;
+    }
+
+    console.log("[useDebateSocket] Starting debate:", sessionId);
+    setMessages([]);
+    setAgentStatuses({});
+    setCurrentRound(0);
+    setIsDebateComplete(false);
+    setCompletedSession(null);
+    setError(null);
+
+    console.log("[useDebateSocket] Emitting 'start-debate' event with sessionId:", sessionId);
+    socket.emit("start-debate", sessionId);
+    console.log("[useDebateSocket] Event emitted successfully");
   };
 
   return {

@@ -371,13 +371,46 @@ pnpm dev
 - **质量趋势图**：每轮协商质量变化柱状图
 - **完整总结**：核心内容的结构化总结
 
-### 管理API密钥
+### 配置 AI 提供商
 
-1. 点击首页"AI设置"按钮
-2. 选择AI提供商（OpenAI或Claude）
-3. 输入API密钥
-4. 测试密钥有效性
-5. 保存后即可使用
+ConsensusLab 需要 AI 模型才能运行智能体协商。您有两种配置方式：
+
+#### 选项1：使用内置 Manus AI（推荐）
+
+在 `.env` 文件中配置：
+
+```bash
+BUILT_IN_FORGE_API_URL=https://forge.manus.im
+BUILT_IN_FORGE_API_KEY=your_manus_api_key_here
+```
+
+**优点**：
+- 一次配置，全站可用
+- 无需在UI中重复配置
+- 适合快速开始和测试
+
+#### 选项2：使用自己的 OpenAI/Claude API
+
+1. 点击首页"AI 设置"按钮（或访问 `/settings/api-keys`）
+2. 点击"添加 AI 提供商配置"
+3. 选择提供商（OpenAI 或 Claude）
+4. 输入配置信息：
+   - **名称**：给配置起个名字（如"我的 OpenAI"）
+   - **API Key**：您的 API 密钥
+   - **Base URL**（可选）：默认为官方 API 地址
+   - **Model**（可选）：指定模型，如 `gpt-4o-mini`、`claude-3-5-sonnet-20241022`
+5. 点击"测试连接"验证配置
+6. 保存后自动设为活跃提供商
+
+**优点**：
+- 使用自己的 API 额度，成本可控
+- 支持多个 API 密钥配置，随时切换
+- 支持最新的 GPT-4o、o1、Claude 3.5 等模型
+
+**注意**：
+- 如果不配置任何 AI 提供商，点击"开始讨论"时会提示错误
+- 系统会优先使用 UI 中配置的活跃提供商，其次使用内置 Manus AI
+- 查看 `.env.example` 了解完整配置选项
 
 ---
 

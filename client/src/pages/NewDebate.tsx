@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Check, Sparkles, Save, FolderOpen } from "lucide-react";
+import { ArrowLeft, Loader2, Check, Sparkles, Save, FolderOpen, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -34,6 +35,9 @@ export default function NewDebate() {
 
   const { data: agents, isLoading: agentsLoading } = trpc.agents.list.useQuery();
   const { data: templates } = trpc.templates.list.useQuery(undefined, {
+    enabled: !!user,
+  });
+  const { data: activeProvider } = trpc.aiProvider.getActive.useQuery(undefined, {
     enabled: !!user,
   });
   const saveTemplate = trpc.templates.create.useMutation({
@@ -164,6 +168,22 @@ export default function NewDebate() {
               选择专家智能体，设定协商议题，开启多维度思考之旅
             </p>
           </div>
+
+          {/* AI Provider Warning */}
+          {user && !activeProvider && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>需要配置 AI 提供商</AlertTitle>
+              <AlertDescription>
+                在开始讨论之前，您需要先配置 AI 提供商（OpenAI 或 Claude API 密钥）。
+                <Link href="/settings/api-keys">
+                  <Button variant="link" className="px-2 h-auto">
+                    点击这里前往设置
+                  </Button>
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Topic Input */}
