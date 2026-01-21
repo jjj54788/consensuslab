@@ -5,7 +5,7 @@
 
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { users, type User, type UserRecord } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { ENV } from "./env";
