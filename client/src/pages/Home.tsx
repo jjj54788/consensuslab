@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getLoginUrl } from "@/const";
+import { LOGIN_ROUTE } from "@/const";
 import { MessageSquare, Users, TrendingUp, History } from "lucide-react";
 import { Link } from "wouter";
 
@@ -35,7 +35,7 @@ export default function Home() {
               </div>
             ) : (
               <Button asChild>
-                <a href={getLoginUrl()}>登录</a>
+                <a href={LOGIN_ROUTE}>登录</a>
               </Button>
             )}
           </div>
@@ -59,7 +59,7 @@ export default function Home() {
               </Link>
             ) : (
               <Button size="lg" asChild>
-                <a href={getLoginUrl()}>立即开始</a>
+                <a href={LOGIN_ROUTE}>立即开始</a>
               </Button>
             )}
             <Link href="/debates">

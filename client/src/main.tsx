@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { LOGIN_ROUTE } from "@/const";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
@@ -19,8 +20,8 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!isUnauthorized) return;
 
   // Redirect to local login page
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
+  if (window.location.pathname !== LOGIN_ROUTE) {
+    window.location.href = LOGIN_ROUTE;
   }
 };
 

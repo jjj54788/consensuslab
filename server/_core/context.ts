@@ -1,5 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
+import { parse as parseCookie } from "cookie";
 import { verifyToken } from "./auth-standalone";
 import { COOKIE_NAME } from "@shared/const";
 
@@ -16,7 +17,10 @@ export async function createContext(
 
   try {
     // Standalone authentication: check JWT token in cookie
-    const token = opts.req.cookies[COOKIE_NAME];
+    const cookieHeader = opts.req.headers.cookie;
+    const cookies =
+      typeof cookieHeader === "string" ? parseCookie(cookieHeader) : undefined;
+    const token = cookies?.[COOKIE_NAME];
     if (token) {
       user = verifyToken(token);
     }
