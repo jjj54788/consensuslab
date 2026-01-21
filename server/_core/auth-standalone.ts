@@ -42,6 +42,28 @@ async function findUserRecord(username: string): Promise<UserRecord | null> {
   return result[0] ?? null;
 }
 
+async function createLocalUser(username: string, password: string): Promise<UserRecord | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const now = new Date();
+  const isAdminAccount = username === ADMIN_USERNAME;
+
+  await db.insert(users).values({
+    openId: username,
+    name: username,
+    email: isAdminAccount ? ADMIN_EMAIL : null,
+    loginMethod: "local",
+    role: isAdminAccount ? "admin" : "user",
+    passwordHash: hashedPassword,
+    lastSignedIn: now,
+  });
+
+  console.log(`[Auth] Registered new local user "${username}"`);
+  return findUserRecord(username);
+}
+
 /**
  * Ensure the default admin user exists in the database with a hashed password.
  */
@@ -82,37 +104,48 @@ export async function verifyAdminCredentials(
   username: string,
   password: string
 ): Promise<User | null> {
-  const record = await findUserRecord(username);
+  const db = await getDb();
 
-  if (record?.passwordHash) {
-    const matches = await bcrypt.compare(password, record.passwordHash);
-    if (!matches) {
-      return null;
+  if (!db) {
+    console.warn("[Auth] DATABASE_URL is not configured; falling back to env admin credentials only");
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      return buildEnvAdminUser();
     }
-
-    const signedInAt = new Date();
-    const db = await getDb();
-    if (db) {
-      await db.update(users).set({ lastSignedIn: signedInAt }).where(eq(users.id, record.id));
-    }
-
-    return sanitizeUser({
-      ...record,
-      lastSignedIn: signedInAt,
-    });
+    return null;
   }
+
+  let record = await findUserRecord(username);
 
   if (!record) {
-    console.warn("[Auth] User not found in database, falling back to environment credentials");
-  } else {
-    console.warn("[Auth] User record has no passwordHash, falling back to environment credentials");
+    record = await createLocalUser(username, password);
   }
 
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    return buildEnvAdminUser();
+  if (record && !record.passwordHash) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await db.update(users).set({ passwordHash: hashedPassword }).where(eq(users.id, record.id));
+    record = {
+      ...record,
+      passwordHash: hashedPassword,
+    };
   }
 
-  return null;
+  if (!record?.passwordHash) {
+    console.warn(`[Auth] User "${username}" is missing a password hash`);
+    return null;
+  }
+
+  const matches = await bcrypt.compare(password, record.passwordHash);
+  if (!matches) {
+    return null;
+  }
+
+  const signedInAt = new Date();
+  await db.update(users).set({ lastSignedIn: signedInAt }).where(eq(users.id, record.id));
+
+  return sanitizeUser({
+    ...record,
+    lastSignedIn: signedInAt,
+  });
 }
 
 /**
