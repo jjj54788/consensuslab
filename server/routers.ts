@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { verifyAdminCredentials, generateToken, getAdminUser } from "./_core/auth-standalone";
+import { verifyAdminCredentials, generateToken } from "./_core/auth-standalone";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
@@ -49,14 +49,12 @@ export const appRouter = router({
           password: z.string().min(1),
         })
       )
-      .mutation(({ ctx, input }) => {
-        // Verify admin credentials
-        if (!verifyAdminCredentials(input.username, input.password)) {
+      .mutation(async ({ ctx, input }) => {
+        // Verify user credentials against local database
+        const user = await verifyAdminCredentials(input.username, input.password);
+        if (!user) {
           throw new Error("Invalid username or password");
         }
-
-        // Get admin user
-        const user = getAdminUser();
 
         // Generate JWT token
         const token = generateToken(user);

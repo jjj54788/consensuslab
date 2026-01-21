@@ -3,27 +3,116 @@
  * Simple admin-only authentication without OAuth dependency
  */
 
+import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 import * as jwt from "jsonwebtoken";
+import { users, type User, type UserRecord } from "../../drizzle/schema";
+import { getDb } from "../db";
 import { ENV } from "./env";
 
-// Import User type from database schema
-import type { User as DBUser } from "../../drizzle/schema";
-
-export type User = DBUser;
-
-// Admin credentials from environment variables
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_USERNAME = ENV.adminUsername;
+const ADMIN_PASSWORD = ENV.adminPassword;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@consensuslab.local";
 
+function buildEnvAdminUser(): User {
+  const now = new Date();
+  return {
+    id: 1,
+    openId: ADMIN_USERNAME,
+    name: ADMIN_USERNAME,
+    email: ADMIN_EMAIL,
+    loginMethod: "local",
+    role: "admin",
+    createdAt: now,
+    updatedAt: now,
+    lastSignedIn: now,
+  };
+}
+
+function sanitizeUser(record: UserRecord): User {
+  const { passwordHash: _passwordHash, ...safeUser } = record;
+  return safeUser;
+}
+
+async function findUserRecord(username: string): Promise<UserRecord | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(users).where(eq(users.openId, username)).limit(1);
+  return result[0] ?? null;
+}
+
 /**
- * Verify admin credentials
+ * Ensure the default admin user exists in the database with a hashed password.
  */
-export function verifyAdminCredentials(
+export async function ensureAdminUserExists(): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Auth] DATABASE_URL is not configured; default admin cannot be created");
+    return;
+  }
+
+  const existing = await findUserRecord(ADMIN_USERNAME);
+  if (!existing) {
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    await db.insert(users).values({
+      openId: ADMIN_USERNAME,
+      name: ADMIN_USERNAME,
+      email: ADMIN_EMAIL,
+      loginMethod: "local",
+      role: "admin",
+      passwordHash: hashedPassword,
+    });
+    console.log("[Auth] Created default admin user from environment variables");
+    return;
+  }
+
+  if (!existing.passwordHash) {
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    await db.update(users).set({ passwordHash: hashedPassword }).where(eq(users.id, existing.id));
+    console.log("[Auth] Injected password for existing admin user");
+  }
+}
+
+/**
+ * Verify user credentials against stored hashed passwords.
+ * Falls back to environment variables if the database is unavailable.
+ */
+export async function verifyAdminCredentials(
   username: string,
   password: string
-): boolean {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+): Promise<User | null> {
+  const record = await findUserRecord(username);
+
+  if (record?.passwordHash) {
+    const matches = await bcrypt.compare(password, record.passwordHash);
+    if (!matches) {
+      return null;
+    }
+
+    const signedInAt = new Date();
+    const db = await getDb();
+    if (db) {
+      await db.update(users).set({ lastSignedIn: signedInAt }).where(eq(users.id, record.id));
+    }
+
+    return sanitizeUser({
+      ...record,
+      lastSignedIn: signedInAt,
+    });
+  }
+
+  if (!record) {
+    console.warn("[Auth] User not found in database, falling back to environment credentials");
+  } else {
+    console.warn("[Auth] User record has no passwordHash, falling back to environment credentials");
+  }
+
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    return buildEnvAdminUser();
+  }
+
+  return null;
 }
 
 /**
@@ -53,23 +142,6 @@ export function verifyToken(token: string): User | null {
   } catch (error) {
     return null;
   }
-}
-
-/**
- * Get admin user object
- */
-export function getAdminUser(): User {
-  return {
-    id: 1,
-    openId: "admin",
-    name: ADMIN_USERNAME,
-    email: ADMIN_EMAIL,
-    loginMethod: "standalone",
-    role: "admin",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastSignedIn: new Date(),
-  };
 }
 
 /**

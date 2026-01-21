@@ -67,6 +67,10 @@ ADMIN_PASSWORD="admin123"
 ADMIN_EMAIL="admin@consensuslab.local"
 ```
 
+> NOTE: **Local authentication** now persists the admin credentials in your MySQL instance.  
+> Running the latest migrations adds a `passwordHash` column to the `users` table and the server will automatically insert/update the default admin row (hashed with the password above) when it boots.  
+> To rotate the admin password (or add more local accounts) update the corresponding records directly in MySQL and store `bcrypt` hashes in `users.passwordHash`.
+
 **4. 初始化数据库**
 
 ```bash

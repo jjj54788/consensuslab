@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { seedAgents } from "../seedAgents";
 import { seedPresetTemplates } from "../seedTemplates";
 import { setupWebSocket } from "../websocket";
+import { ensureAdminUserExists } from "./auth-standalone";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -65,6 +66,7 @@ async function startServer() {
 
   server.listen(port, async () => {
     console.log(`Server running on http://localhost:${port}/`);
+    await ensureAdminUserExists();
     // Initialize preset agents
     await seedAgents();
     // Initialize preset templates
