@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/seed-models.mjs:*)",
+      "Bash(pnpm exec tsx:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(pm2 env:*)",
+      "Bash(pm2 show:*)"
+    ]
+  }
+}
