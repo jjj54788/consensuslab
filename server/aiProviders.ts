@@ -1,4 +1,5 @@
 import { invokeLLM } from "./_core/llm";
+import { ENV } from "./_core/env";
 
 export type AIProvider = "manus" | "openai" | "anthropic" | "custom";
 
@@ -25,16 +26,61 @@ export interface ChatCompletionResponse {
 
 /**
  * Abstract AI provider interface
- * Supports multiple AI providers: Manus built-in, OpenAI, Anthropic, and custom APIs
+ * Reads API keys from environment variables (.env file)
  */
 export class AIProviderService {
   /**
-   * Invoke AI completion with the specified provider
+   * Get AI provider configuration from environment variables
+   */
+  private static getProviderFromEnv(): AIProviderConfig {
+    // Priority: OPENAI_API_KEY > ANTHROPIC_API_KEY > BUILT_IN_FORGE_API_KEY
+    if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
+      console.log("[AIProviderService] Using OpenAI from OPENAI_API_KEY");
+      return {
+        provider: "openai",
+        apiKey: ENV.openaiApiKey,
+      };
+    }
+
+    if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
+      console.log("[AIProviderService] Using Anthropic from ANTHROPIC_API_KEY");
+      return {
+        provider: "anthropic",
+        apiKey: ENV.anthropicApiKey,
+      };
+    }
+
+    if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
+      console.log("[AIProviderService] Using Manus Forge from BUILT_IN_FORGE_API_KEY");
+      return {
+        provider: "manus",
+      };
+    }
+
+    throw new Error(
+      "No AI provider configured in .env file. Please add one of:\n" +
+      "  OPENAI_API_KEY=sk-...\n" +
+      "  ANTHROPIC_API_KEY=sk-ant-...\n" +
+      "  BUILT_IN_FORGE_API_KEY=..."
+    );
+  }
+
+  /**
+   * Invoke AI completion - automatically reads from environment variables
    */
   static async chat(
     messages: ChatMessage[],
-    config: AIProviderConfig
+    configOverride?: Partial<AIProviderConfig>
   ): Promise<ChatCompletionResponse> {
+    // Get config from environment variables
+    const envConfig = this.getProviderFromEnv();
+
+    // Allow model override
+    const config: AIProviderConfig = {
+      ...envConfig,
+      ...configOverride,
+    };
+
     switch (config.provider) {
       case "manus":
         return this.chatWithManus(messages);

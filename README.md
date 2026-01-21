@@ -373,73 +373,113 @@ pnpm dev
 
 ### 配置 AI 提供商
 
-ConsensusLab 需要 AI 模型才能运行智能体协商。您有三种配置方式：
+ConsensusLab 需要 AI 模型才能运行智能体协商。**系统会自动从 `.env` 文件读取 API 密钥**，无需在 UI 中配置。
 
-#### 选项1：使用内置 Manus AI（推荐用于快速开始）
+#### 配置步骤
 
-在 `.env` 文件中配置：
+**1. 编辑 `.env` 文件**
 
-```bash
-BUILT_IN_FORGE_API_URL=https://forge.manus.im
-BUILT_IN_FORGE_API_KEY=your_manus_api_key_here
-```
-
-**优点**：
-- 一次配置，全站可用
-- 无需在UI中重复配置
-- 适合快速开始和测试
-
-#### 选项2：使用环境变量配置 OpenAI/Claude（推荐用于服务器部署）
-
-在 `.env` 文件中配置：
+在项目根目录的 `.env` 文件中，添加以下配置之一：
 
 ```bash
-OPENAI_API_KEY=sk-your_openai_api_key_here
-# 或
-ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key_here
+# 选项1: OpenAI（推荐 - 最稳定可靠）
+OPENAI_API_KEY=sk-your_actual_openai_key_here
+
+# 选项2: Anthropic Claude
+ANTHROPIC_API_KEY=sk-ant-your_actual_anthropic_key_here
+
+# 选项3: Manus AI (内置)
+BUILT_IN_FORGE_API_KEY=your_manus_key_here
 ```
 
-**优点**：
-- 最简单的配置方式，只需一个环境变量
-- 系统自动使用，无需在 UI 中配置
-- 适合服务器部署和 Docker 环境
-- 使用自己的 API 额度，成本可控
+**重要**：
+- 只需配置**一个** API 密钥即可
+- 使用您的**真实** API 密钥替换示例值
+- 优先级顺序：OpenAI > Anthropic > Manus
 
-**注意**：
-- 如果同时配置了多个选项，优先级为：UI 配置 > 环境变量 > 内置 Manus AI
-- 支持最新的 GPT-4o、o1、Claude 3.5 Sonnet 等模型
+**2. 获取 API 密钥**
 
-#### 选项3：在 UI 中配置 OpenAI/Claude API
+| 提供商 | 获取地址 | 说明 |
+|--------|----------|------|
+| OpenAI | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | 支持 GPT-4o, o1, GPT-4o-mini 等模型 |
+| Anthropic | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) | 支持 Claude 3.5 Sonnet, Claude 3.5 Haiku |
+| Manus AI | [portal.manus.im](https://portal.manus.im) | 国内访问友好，支持 Gemini 2.5 Flash |
 
-1. 点击首页"AI 设置"按钮（或访问 `/settings/api-keys`）
-2. 点击"添加 AI 提供商配置"
-3. 选择提供商（OpenAI 或 Anthropic）
-4. 输入配置信息：
-   - **名称**：给配置起个名字（如"我的 OpenAI"）
-   - **API Key**：您的 API 密钥
-   - **Base URL**（可选）：默认为官方 API 地址
-   - **Model**（可选）：指定模型，如 `gpt-4o-mini`、`claude-3-5-sonnet-20241022`
-5. 点击"测试连接"验证配置
-6. 保存后自动设为活跃提供商
+**3. 重启服务器**
 
-**优点**：
-- 支持多个 API 密钥配置，随时切换
-- 可以为不同用途配置不同的密钥
-- 支持自定义 Base URL（用于代理或第三方服务）
-- 支持指定具体模型版本
+配置 API 密钥后，必须重启服务器才能生效：
 
-**API 密钥获取**：
-- OpenAI: https://platform.openai.com/api-keys
-- Anthropic: https://console.anthropic.com/settings/keys
+```bash
+# 方式1: 如果使用 pm2
+pm2 restart consensuslab
 
-**配置优先级**：
-1. UI 中配置的活跃提供商（最高优先级）
-2. 环境变量中的 `OPENAI_API_KEY` 或 `ANTHROPIC_API_KEY`
-3. 内置 Manus AI 的 `BUILT_IN_FORGE_API_KEY`
+# 方式2: 如果直接运行
+# 停止服务器 (Ctrl+C)，然后重新启动
+pnpm build
+pnpm start
+```
 
-**注意**：
-- 如果不配置任何 AI 提供商，点击"开始讨论"时会显示警告
-- 查看 `.env.example` 了解完整配置选项和示例
+**4. 验证配置**
+
+服务器启动时会显示配置状态：
+
+```
+========================================
+AI Provider Configuration:
+- OPENAI_API_KEY: ✓ Configured
+- ANTHROPIC_API_KEY: ✗ Not set
+- BUILT_IN_FORGE_API_KEY: ✗ Not set
+
+✓ At least one AI provider is configured
+========================================
+```
+
+确保看到至少一个 `✓ Configured` 标记。
+
+#### 配置示例
+
+**示例 1: 使用 OpenAI**
+```bash
+# .env 文件
+DATABASE_URL=mysql://user:pass@localhost:3306/consensuslab
+JWT_SECRET=your_jwt_secret
+OPENAI_API_KEY=sk-proj-abc123xyz...
+```
+
+**示例 2: 使用 Anthropic Claude**
+```bash
+# .env 文件
+DATABASE_URL=mysql://user:pass@localhost:3306/consensuslab
+JWT_SECRET=your_jwt_secret
+ANTHROPIC_API_KEY=sk-ant-api03-abc123xyz...
+```
+
+#### 优点
+
+- ✅ **简单直接**：只需在 `.env` 文件中配置一次
+- ✅ **安全可靠**：API 密钥存储在服务器端，不暴露给前端
+- ✅ **自动选择**：系统自动选择配置的提供商
+- ✅ **成本可控**：使用自己的 API 额度
+- ✅ **无需 UI 操作**：不需要在网页界面中配置
+
+#### 故障排除
+
+**问题：启动时提示 "No AI provider configured"**
+
+**解决方案**：
+1. 检查 `.env` 文件是否存在于项目根目录
+2. 确认 API 密钥格式正确（OpenAI: `sk-`, Anthropic: `sk-ant-`）
+3. 确保 `.env` 文件中没有多余的空格或引号
+4. 重启服务器使配置生效
+
+**问题：讨论无法开始，提示 API 错误**
+
+**解决方案**：
+1. 验证 API 密钥是否有效（未过期、有余额）
+2. 检查网络连接是否正常
+3. 查看服务器日志了解详细错误信息
+
+更多问题请查看 [故障排除文档](https://github.com/jjj54788/consensuslab/wiki/Troubleshooting)。
 
 ---
 

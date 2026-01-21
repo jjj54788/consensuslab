@@ -1,7 +1,6 @@
 import { Agent, Message } from "../drizzle/schema";
 import { getAgentById } from "./db";
-import { AIProviderService, AIProviderConfig } from "./aiProviders";
-import { getActiveAIProvider } from "./aiProviderDb";
+import { AIProviderService } from "./aiProviders";
 
 interface ScoringResult {
   score: number;
@@ -20,7 +19,7 @@ const SCORER_IDS = {
 export async function scoreMessage(
   message: Message,
   context: { topic: string; previousMessages: Message[] },
-  userId: number
+  userId?: number
 ): Promise<{
   logicScore: number;
   innovationScore: number;
@@ -130,59 +129,14 @@ function buildScoringContext(
 async function scoreWithAgent(
   scorer: Agent,
   contextText: string,
-  userId: number
+  userId?: number
 ): Promise<ScoringResult> {
   try {
-    // Get user's active AI provider config with fallback to environment variables
-    const providerConfig = await getActiveAIProvider(userId);
-
-    // Determine provider and API key with fallback to environment variables
-    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
-    let apiKey: string | undefined = undefined;
-    let baseURL: string | undefined = undefined;
-    let model: string | undefined = undefined;
-
-    if (providerConfig) {
-      // User has configured a custom provider
-      provider = providerConfig.provider;
-      apiKey = providerConfig.apiKey || undefined;
-      baseURL = providerConfig.baseURL || undefined;
-      model = providerConfig.model || undefined;
-    } else {
-      // No custom provider configured, check environment variables
-      const { ENV } = await import("./_core/env");
-
-      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
-        provider = "openai";
-        apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
-        provider = "anthropic";
-        apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
-        provider = "manus";
-        apiKey = ENV.forgeApiKey;
-      } else {
-        throw new Error(
-          "No AI provider configured for scoring. Please add one of these to your .env file: " +
-          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
-        );
-      }
-    }
-
-    const aiConfig: AIProviderConfig = {
-      provider,
-      apiKey,
-      baseURL,
-      model,
-    };
-
-    const response = await AIProviderService.chat(
-      [
-        { role: "system", content: scorer.systemPrompt },
-        { role: "user", content: contextText },
-      ],
-      aiConfig
-    );
+    // AIProviderService automatically reads from environment variables
+    const response = await AIProviderService.chat([
+      { role: "system", content: scorer.systemPrompt },
+      { role: "user", content: contextText },
+    ]);
 
     const content = response.content || "{}";
 

@@ -1,8 +1,7 @@
 import { nanoid } from "nanoid";
 import { Agent, Message } from "../drizzle/schema";
 import { createMessage, getSessionMessages, updateDebateSession, updateMessage } from "./db";
-import { AIProviderService, AIProviderConfig } from "./aiProviders";
-import { getActiveAIProvider } from "./aiProviderDb";
+import { AIProviderService } from "./aiProviders";
 import { scoreMessage } from "./scoringEngine";
 
 export type AgentStatus = "idle" | "thinking" | "speaking" | "waiting";
@@ -29,7 +28,7 @@ export async function generateAgentResponse(
   agent: Agent,
   context: DebateContext,
   previousMessages: Message[],
-  userId: number
+  userId?: number
 ): Promise<string> {
   // Build conversation history
   const history = previousMessages
@@ -76,89 +75,18 @@ ${previousMessages.length === 0
 Be concise but impactful. (100-150 words)`}`;
 
   try {
-    // Get user's active AI provider config
-    const providerConfig = await getActiveAIProvider(userId);
+    console.log(`[DebateEngine] Generating response for ${agent.name}...`);
 
-    // Determine provider and API key with fallback to environment variables
-    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
-    let apiKey: string | undefined = undefined;
-    let baseURL: string | undefined = undefined;
-    let model: string | undefined = undefined;
+    // AIProviderService automatically reads from environment variables
+    const response = await AIProviderService.chat([
+      { role: "system", content: agent.systemPrompt },
+      { role: "user", content: prompt },
+    ]);
 
-    if (providerConfig) {
-      // User has configured a custom provider
-      console.log(`[DebateEngine] Using user-configured provider: ${providerConfig.provider}`);
-      provider = providerConfig.provider;
-      apiKey = providerConfig.apiKey || undefined;
-      baseURL = providerConfig.baseURL || undefined;
-      model = providerConfig.model || undefined;
-    } else {
-      // No custom provider configured, check environment variables
-      const { ENV } = await import("./_core/env");
-
-      console.log("[DebateEngine] No user provider configured, checking environment variables...");
-      console.log("[DebateEngine] Environment check:", {
-        hasOpenAI: !!ENV.openaiApiKey && ENV.openaiApiKey.length > 0,
-        hasAnthropic: !!ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0,
-        hasForge: !!ENV.forgeApiKey && ENV.forgeApiKey.length > 0,
-      });
-
-      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using OpenAI API key from OPENAI_API_KEY environment variable");
-        provider = "openai";
-        apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using Anthropic API key from ANTHROPIC_API_KEY environment variable");
-        provider = "anthropic";
-        apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using built-in Manus Forge API from BUILT_IN_FORGE_API_KEY");
-        provider = "manus";
-        apiKey = ENV.forgeApiKey;
-      } else {
-        console.error("[DebateEngine] ✗ No AI provider configured!");
-        console.error("[DebateEngine] Please set one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY in .env file");
-        throw new Error(
-          "No AI provider configured. Please add one of these to your .env file: " +
-          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
-        );
-      }
-    }
-
-    const aiConfig: AIProviderConfig = {
-      provider,
-      apiKey,
-      baseURL,
-      model,
-    };
-
-    console.log(`[DebateEngine] Generating response for ${agent.name} using provider: ${aiConfig.provider}`);
-
-    const response = await AIProviderService.chat(
-      [
-        { role: "system", content: agent.systemPrompt },
-        { role: "user", content: prompt },
-      ],
-      aiConfig
-    );
-
-    console.log(`[DebateEngine] Response generated successfully for ${agent.name}`);
+    console.log(`[DebateEngine] ✓ Response generated successfully for ${agent.name}`);
     return response.content || "I have no response at this time.";
   } catch (error) {
-    console.error(`[DebateEngine] Error generating response for ${agent.name}:`, error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Provide helpful error message if AI provider is not configured
-    if (errorMessage.includes("OPENAI_API_KEY is not configured") ||
-        errorMessage.includes("API key is required") ||
-        errorMessage.includes("API key")) {
-      throw new Error(
-        "AI Provider not configured. Please either: " +
-        "1) Add OPENAI_API_KEY or ANTHROPIC_API_KEY to your .env file, OR " +
-        "2) Configure your API key in Settings > AI Provider Settings"
-      );
-    }
-
+    console.error(`[DebateEngine] ✗ Error generating response for ${agent.name}:`, error);
     throw error;
   }
 }
@@ -170,7 +98,7 @@ Be concise but impactful. (100-150 words)`}`;
 export async function executeDebateRound(
   sessionId: string,
   context: DebateContext,
-  userId: number,
+  userId?: number,
   onAgentStatusChange?: (agentId: string, status: AgentStatus) => void,
   onMessageCreated?: (message: Message) => void
 ): Promise<Message[]> {
@@ -286,7 +214,7 @@ export async function generateDebateSummary(
   topic: string,
   agents: Agent[],
   messages: Message[],
-  userId: number
+  userId?: number
 ): Promise<{
   summary: string;
   keyPoints: string[];
@@ -341,66 +269,16 @@ ${conversation}${highlightsContext}
 注意：bestViewpoint、mostInnovative和goldenQuotes中都必须包含发言者的智能体名称，格式为"智能体名称：内容"。`;
 
   try {
-    // Get user's active AI provider config with fallback to environment variables
-    const providerConfig = await getActiveAIProvider(userId);
+    console.log(`[DebateEngine] Generating summary...`);
 
-    // Determine provider and API key with fallback to environment variables
-    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
-    let apiKey: string | undefined = undefined;
-    let baseURL: string | undefined = undefined;
-    let model: string | undefined = undefined;
-
-    if (providerConfig) {
-      // User has configured a custom provider
-      console.log(`[DebateEngine] Using user-configured provider for summary: ${providerConfig.provider}`);
-      provider = providerConfig.provider;
-      apiKey = providerConfig.apiKey || undefined;
-      baseURL = providerConfig.baseURL || undefined;
-      model = providerConfig.model || undefined;
-    } else {
-      // No custom provider configured, check environment variables
-      const { ENV } = await import("./_core/env");
-
-      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using OpenAI for summary from OPENAI_API_KEY");
-        provider = "openai";
-        apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using Anthropic for summary from ANTHROPIC_API_KEY");
-        provider = "anthropic";
-        apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
-        console.log("[DebateEngine] ✓ Using Manus Forge for summary from BUILT_IN_FORGE_API_KEY");
-        provider = "manus";
-        apiKey = ENV.forgeApiKey;
-      } else {
-        console.error("[DebateEngine] ✗ No AI provider for summary generation!");
-        throw new Error(
-          "No AI provider configured. Please add one of these to your .env file: " +
-          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
-        );
-      }
-    }
-
-    const aiConfig: AIProviderConfig = {
-      provider,
-      apiKey,
-      baseURL,
-      model,
-    };
-
-    console.log(`[DebateEngine] Generating summary using provider: ${aiConfig.provider}`);
-
-    const response = await AIProviderService.chat(
-      [
-        {
-          role: "system",
-          content: "你是一位专业的讨论分析专家。请提供客观、平衡的分析，所有输出必须使用中文。",
-        },
-        { role: "user", content: prompt },
-      ],
-      aiConfig
-    );
+    // AIProviderService automatically reads from environment variables
+    const response = await AIProviderService.chat([
+      {
+        role: "system",
+        content: "你是一位专业的讨论分析专家。请提供客观、平衡的分析，所有输出必须使用中文。",
+      },
+      { role: "user", content: prompt },
+    ]);
 
     const content = response.content;
     if (!content) {
@@ -437,7 +315,7 @@ ${conversation}${highlightsContext}
 export async function runDebateSession(
   sessionId: string,
   context: DebateContext,
-  userId: number,
+  userId?: number,
   onAgentStatusChange?: (agentId: string, status: AgentStatus) => void,
   onMessageCreated?: (message: Message) => void,
   onRoundComplete?: (round: number) => void

@@ -1,182 +1,232 @@
-# Rebuild and Restart Instructions
+# 🚀 简化配置 - 从 .env 文件读取 API 密钥
 
-## The Issue
+## 📝 说明
 
-You're seeing the error "No AI provider configured" because the server is running **old compiled code** from before the environment variable fallback was added. The server needs to be rebuilt with the new code.
+系统已简化为**直接从 `.env` 文件读取 API 密钥**，无需在 UI 中配置。所有 AI 模型调用会自动使用环境变量中的 API 密钥。
 
-## Quick Fix
+## ⚡ 快速配置
 
-### Step 1: Stop the Server
+### 步骤 1: 停止服务器
 
 ```bash
-# If running with pm2:
+# 如果使用 pm2:
 pm2 stop consensuslab
 
-# Or if running directly:
-# Press Ctrl+C in the terminal where the server is running
+# 或直接运行的话按 Ctrl+C
 ```
 
-### Step 2: Check Your .env File
+### 步骤 2: 配置 .env 文件
 
-Make sure you have **at least one** API key configured in your `.env` file:
+编辑项目根目录的 `.env` 文件，添加以下配置之一：
 
 ```bash
-# Option 1: OpenAI (Recommended - most reliable)
+# 选项1: OpenAI (推荐 - 最稳定)
 OPENAI_API_KEY=sk-your_actual_openai_key_here
 
-# OR Option 2: Anthropic Claude
+# 选项2: Anthropic Claude
 ANTHROPIC_API_KEY=sk-ant-your_actual_anthropic_key_here
 
-# OR Option 3: Built-in Manus AI
+# 选项3: Manus AI
 BUILT_IN_FORGE_API_KEY=your_manus_key_here
 ```
 
-**Important:** Replace `sk-your_actual_openai_key_here` with your real API key!
+**重要提示**：
+- 只需配置**一个**即可
+- 使用**真实的** API 密钥替换示例值
+- 不要在密钥前后添加引号或空格
+- 优先级：OpenAI > Anthropic > Manus
 
-### Step 3: Rebuild the Project
+### 步骤 3: 重新编译项目
 
 ```bash
-# Navigate to project directory
 cd /home/ai4news/consensuslab
-
-# Rebuild the project
 pnpm build
 ```
 
-This will compile the new code that includes the environment variable fallback logic.
+这会编译新的代码，使系统能够从 .env 文件读取 API 密钥。
 
-### Step 4: Restart the Server
+### 步骤 4: 重启服务器
 
 ```bash
-# If using pm2:
+# 使用 pm2:
 pm2 restart consensuslab
 
-# Or if running directly:
+# 或直接运行:
 pnpm start
 ```
 
-### Step 5: Verify Configuration
+### 步骤 5: 验证配置
 
-When the server starts, you should see a startup banner like this:
+启动时应该看到这样的输出：
 
 ```
 ========================================
 ConsensusLab Server Starting...
 ========================================
-Environment Configuration:
-- NODE_ENV: production
-- PORT: 3000
-- DATABASE_URL: ✓ Configured
-
 AI Provider Configuration:
-- OPENAI_API_KEY: ✓ Configured
+- OPENAI_API_KEY: ✓ Configured     <-- 这里应该是 ✓
 - ANTHROPIC_API_KEY: ✗ Not set
 - BUILT_IN_FORGE_API_KEY: ✗ Not set
 
-✓ At least one AI provider is configured
+✓ At least one AI provider is configured  <-- 这里应该显示
 ========================================
 ```
 
-**Look for:** "✓ At least one AI provider is configured"
+**确认**：至少看到一个 `✓ Configured`
 
-If you see "⚠ WARNING: No AI provider configured!" then your .env file is not being loaded correctly.
+### 步骤 6: 测试讨论功能
 
-### Step 6: Test the Discussion
-
-1. Go to your website
-2. Click "启动协商会议" (Start Discussion)
-3. Select agents and topic
-4. Click "开始讨论" (Start Discussion)
-5. Check the server logs - you should see:
+1. 打开网站
+2. 点击"启动协商会议"
+3. 选择智能体和议题
+4. 点击"开始讨论"
+5. 查看服务器日志：
    ```
-   [DebateEngine] No user provider configured, checking environment variables...
-   [DebateEngine] ✓ Using OpenAI API key from OPENAI_API_KEY environment variable
+   [AIProviderService] Using OpenAI from OPENAI_API_KEY
+   [DebateEngine] Generating response for 反对者...
+   [DebateEngine] ✓ Response generated successfully
    ```
 
-## Troubleshooting
+## 🔑 获取 API 密钥
 
-### Problem: Still seeing "No AI provider configured"
+### OpenAI (推荐)
+1. 访问: https://platform.openai.com/api-keys
+2. 点击 "Create new secret key"
+3. 复制密钥 (以 `sk-` 开头)
+4. 添加到 .env: `OPENAI_API_KEY=sk-xxx`
 
-**Cause:** Your .env file might not be in the right location or not being loaded.
+### Anthropic Claude
+1. 访问: https://console.anthropic.com/settings/keys
+2. 创建新的 API 密钥
+3. 复制密钥 (以 `sk-ant-` 开头)
+4. 添加到 .env: `ANTHROPIC_API_KEY=sk-ant-xxx`
 
-**Solutions:**
+### Manus AI
+1. 访问: https://portal.manus.im
+2. 获取 API 密钥
+3. 添加到 .env: `BUILT_IN_FORGE_API_KEY=xxx`
 
-1. **Check .env file location:**
+## 🐛 故障排除
+
+### 问题: 启动时仍提示 "No AI provider configured"
+
+**原因**: `.env` 文件配置不正确或未生效
+
+**解决方案**:
+
+1. **检查 .env 文件是否存在**:
    ```bash
    ls -la /home/ai4news/consensuslab/.env
    ```
-   The file should exist in the project root directory.
 
-2. **Check .env file contents:**
+2. **检查 .env 文件内容**:
    ```bash
    cat /home/ai4news/consensuslab/.env | grep API_KEY
    ```
-   You should see your API key (it will show the actual key).
+   应该能看到你的 API 密钥
 
-3. **Verify environment variable is loaded:**
+3. **检查格式是否正确**:
    ```bash
-   # Check if pm2 is loading env vars
+   # ✅ 正确格式 (无空格，无引号):
+   OPENAI_API_KEY=sk-abc123
+
+   # ❌ 错误格式 (有空格):
+   OPENAI_API_KEY = sk-abc123
+
+   # ❌ 错误格式 (有引号):
+   OPENAI_API_KEY="sk-abc123"
+   ```
+
+4. **确认 pm2 加载了环境变量**:
+   ```bash
    pm2 env consensuslab | grep API_KEY
    ```
 
-4. **Make sure .env file has no extra spaces:**
+5. **如果还是不行，尝试重新加载 pm2**:
    ```bash
-   # Correct format:
-   OPENAI_API_KEY=sk-abc123
-
-   # Wrong format (has spaces):
-   OPENAI_API_KEY = sk-abc123
+   pm2 delete consensuslab
+   pm2 start npm --name consensuslab -- start
    ```
 
-### Problem: Dropdown still empty
+### 问题: 讨论开始后没有响应
 
-**Cause:** Frontend changes need browser cache clear.
+**原因**: API 密钥无效或网络问题
 
-**Solution:**
-1. Hard refresh the page: `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
-2. Or clear browser cache
-3. Or try in incognito/private mode
+**解决方案**:
 
-### Problem: Can't rebuild - "pnpm: command not found"
+1. **验证 API 密钥是否有效**:
+   - 登录 OpenAI/Anthropic 控制台
+   - 检查密钥是否过期
+   - 确认账户有余额
 
-**Solution:**
+2. **检查服务器日志**:
+   ```bash
+   pm2 logs consensuslab --lines 100
+   ```
+   查找错误信息
+
+3. **测试 API 连接**:
+   ```bash
+   # OpenAI
+   curl https://api.openai.com/v1/models \
+     -H "Authorization: Bearer $OPENAI_API_KEY"
+
+   # Anthropic
+   curl https://api.anthropic.com/v1/models \
+     -H "x-api-key: $ANTHROPIC_API_KEY"
+   ```
+
+### 问题: pnpm 命令未找到
+
+**解决方案**:
 ```bash
-# Install pnpm
 npm install -g pnpm
-
-# Then rebuild
-pnpm build
 ```
 
-## Get Your API Keys
+## 📊 配置示例
 
-### OpenAI (Recommended)
-1. Go to: https://platform.openai.com/api-keys
-2. Click "Create new secret key"
-3. Copy the key (starts with `sk-`)
-4. Add to .env: `OPENAI_API_KEY=sk-your_key_here`
-
-### Anthropic Claude
-1. Go to: https://console.anthropic.com/settings/keys
-2. Create a new API key
-3. Copy the key (starts with `sk-ant-`)
-4. Add to .env: `ANTHROPIC_API_KEY=sk-ant-your_key_here`
-
-## Still Having Issues?
-
-Check the server logs for detailed error messages:
+### 完整的 .env 文件示例:
 
 ```bash
-# If using pm2:
-pm2 logs consensuslab
+# 数据库配置
+DATABASE_URL=mysql://user:password@localhost:3306/consensuslab
 
-# Or check the console output if running directly
+# JWT 密钥
+JWT_SECRET=your_random_secret_key_here
+
+# AI API 密钥 (三选一)
+OPENAI_API_KEY=sk-proj-abc123xyz...
+
+# OAuth (可选)
+OAUTH_SERVER_URL=https://api.manus.im
+VITE_OAUTH_PORTAL_URL=https://portal.manus.im
+VITE_APP_ID=your_app_id
+
+# 服务器配置
+PORT=3000
+NODE_ENV=production
 ```
 
-Look for lines starting with:
-- `[DebateEngine]` - Shows AI provider being used
-- `✓` or `✗` - Shows what's configured
+## ✅ 配置成功的标志
 
----
+启动时看到:
+```
+✓ At least one AI provider is configured
+```
 
-**Need more help?** Check the [GitHub Issues](https://github.com/jjj54788/consensuslab/issues) or create a new issue with your error logs.
+日志中看到:
+```
+[AIProviderService] Using OpenAI from OPENAI_API_KEY
+[DebateEngine] ✓ Response generated successfully
+```
+
+讨论页面能看到智能体发言实时出现。
+
+## 🆘 还有问题?
+
+1. 查看完整文档: [GitHub Wiki](https://github.com/jjj54788/consensuslab/wiki)
+2. 搜索已知问题: [GitHub Issues](https://github.com/jjj54788/consensuslab/issues)
+3. 创建新问题并附上:
+   - 服务器日志 (`pm2 logs consensuslab`)
+   - .env 文件配置 (隐藏真实的 API 密钥)
+   - 错误截图
