@@ -5,10 +5,12 @@
 
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { sign as signJwt, verify as verifyJwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { users, type User, type UserRecord } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { ENV } from "./env";
+
+const { sign: signJwt, verify: verifyJwt } = jwt;
 
 const ADMIN_USERNAME = ENV.adminUsername;
 const ADMIN_PASSWORD = ENV.adminPassword;
