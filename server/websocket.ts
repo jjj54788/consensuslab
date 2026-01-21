@@ -36,19 +36,41 @@ export function setupWebSocket(httpServer: HTTPServer) {
 
         const session = await getDebateSessionById(sessionId);
         if (!session) {
-          socket.emit("error", { message: "Session not found" });
+          const errorMsg = "Session not found";
+          console.error(`[WebSocket] ${errorMsg}: ${sessionId}`);
+          io.to(`debate-${sessionId}`).emit("error", { message: errorMsg });
           return;
         }
 
+        // Check if debate is already running or completed
+        if (session.status === "running") {
+          const errorMsg = "Debate is already running";
+          console.warn(`[WebSocket] ${errorMsg}: ${sessionId}`);
+          io.to(`debate-${sessionId}`).emit("error", { message: errorMsg });
+          return;
+        }
+
+        if (session.status === "completed") {
+          const errorMsg = "Debate has already completed";
+          console.warn(`[WebSocket] ${errorMsg}: ${sessionId}`);
+          io.to(`debate-${sessionId}`).emit("error", { message: errorMsg });
+          return;
+        }
+
+        console.log(`[WebSocket] Loading agents for session ${sessionId}...`);
         const allAgents = await getAllAgents();
         const selectedAgents = allAgents.filter((agent) =>
           session.agentIds.includes(agent.id)
         );
 
         if (selectedAgents.length === 0) {
-          socket.emit("error", { message: "No agents found" });
+          const errorMsg = "No agents found for this debate";
+          console.error(`[WebSocket] ${errorMsg}: ${sessionId}`);
+          io.to(`debate-${sessionId}`).emit("error", { message: errorMsg });
           return;
         }
+
+        console.log(`[WebSocket] Found ${selectedAgents.length} agents. Starting debate execution...`);
 
         // Run debate with real-time updates
         await runDebateSession(
@@ -79,13 +101,16 @@ export function setupWebSocket(httpServer: HTTPServer) {
           }
         );
 
+        console.log(`[WebSocket] Debate ${sessionId} completed successfully. Sending completion notification...`);
         // Notify completion
         const updatedSession = await getDebateSessionById(sessionId);
         io.to(`debate-${sessionId}`).emit("debate-complete", updatedSession);
       } catch (error) {
         console.error(`[WebSocket] Error in debate ${sessionId}:`, error);
-        socket.emit("error", {
-          message: error instanceof Error ? error.message : "Unknown error",
+        console.error(`[WebSocket] Error stack:`, error instanceof Error ? error.stack : "No stack trace");
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while starting the debate";
+        io.to(`debate-${sessionId}`).emit("error", {
+          message: errorMessage,
         });
       }
     });

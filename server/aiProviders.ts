@@ -89,7 +89,7 @@ export class AIProviderService {
     }
 
     const baseURL = config.baseURL || "https://api.openai.com/v1";
-    const model = config.model || "gpt-4o-mini";
+    const model = config.model || "gpt-4o-mini"; // Latest efficient model (July 2024)
 
     const response = await fetch(`${baseURL}/chat/completions`, {
       method: "POST",
@@ -134,7 +134,7 @@ export class AIProviderService {
     }
 
     const baseURL = config.baseURL || "https://api.anthropic.com/v1";
-    const model = config.model || "claude-3-5-sonnet-20241022";
+    const model = config.model || "claude-3-5-sonnet-20241022"; // Latest Claude 3.5 Sonnet (Oct 2024)
 
     // Extract system message
     const systemMessage = messages.find((m) => m.role === "system");
