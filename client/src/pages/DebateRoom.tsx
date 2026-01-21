@@ -226,13 +226,14 @@ export default function DebateRoom() {
 
         {/* AI Provider Warning */}
         {user && !activeProvider && canStart && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>需要配置 AI 提供商</AlertTitle>
-            <AlertDescription>
-              在开始讨论之前，您需要先配置 AI 提供商（OpenAI 或 Claude API 密钥）。
+          <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-800 dark:text-yellow-400">提示：未检测到 UI 配置的 AI 提供商</AlertTitle>
+            <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+              系统将自动尝试使用环境变量中的 API 密钥（OPENAI_API_KEY、ANTHROPIC_API_KEY 或 BUILT_IN_FORGE_API_KEY）。
+              如果您想在 UI 中管理多个 API 密钥配置，
               <Link href="/settings/api-keys">
-                <Button variant="link" className="px-2 h-auto">
+                <Button variant="link" className="px-2 h-auto text-yellow-800 dark:text-yellow-300 underline">
                   点击这里前往设置
                 </Button>
               </Link>

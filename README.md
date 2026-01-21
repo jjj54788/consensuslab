@@ -373,9 +373,9 @@ pnpm dev
 
 ### 配置 AI 提供商
 
-ConsensusLab 需要 AI 模型才能运行智能体协商。您有两种配置方式：
+ConsensusLab 需要 AI 模型才能运行智能体协商。您有三种配置方式：
 
-#### 选项1：使用内置 Manus AI（推荐）
+#### 选项1：使用内置 Manus AI（推荐用于快速开始）
 
 在 `.env` 文件中配置：
 
@@ -389,11 +389,31 @@ BUILT_IN_FORGE_API_KEY=your_manus_api_key_here
 - 无需在UI中重复配置
 - 适合快速开始和测试
 
-#### 选项2：使用自己的 OpenAI/Claude API
+#### 选项2：使用环境变量配置 OpenAI/Claude（推荐用于服务器部署）
+
+在 `.env` 文件中配置：
+
+```bash
+OPENAI_API_KEY=sk-your_openai_api_key_here
+# 或
+ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key_here
+```
+
+**优点**：
+- 最简单的配置方式，只需一个环境变量
+- 系统自动使用，无需在 UI 中配置
+- 适合服务器部署和 Docker 环境
+- 使用自己的 API 额度，成本可控
+
+**注意**：
+- 如果同时配置了多个选项，优先级为：UI 配置 > 环境变量 > 内置 Manus AI
+- 支持最新的 GPT-4o、o1、Claude 3.5 Sonnet 等模型
+
+#### 选项3：在 UI 中配置 OpenAI/Claude API
 
 1. 点击首页"AI 设置"按钮（或访问 `/settings/api-keys`）
 2. 点击"添加 AI 提供商配置"
-3. 选择提供商（OpenAI 或 Claude）
+3. 选择提供商（OpenAI 或 Anthropic）
 4. 输入配置信息：
    - **名称**：给配置起个名字（如"我的 OpenAI"）
    - **API Key**：您的 API 密钥
@@ -403,14 +423,23 @@ BUILT_IN_FORGE_API_KEY=your_manus_api_key_here
 6. 保存后自动设为活跃提供商
 
 **优点**：
-- 使用自己的 API 额度，成本可控
 - 支持多个 API 密钥配置，随时切换
-- 支持最新的 GPT-4o、o1、Claude 3.5 等模型
+- 可以为不同用途配置不同的密钥
+- 支持自定义 Base URL（用于代理或第三方服务）
+- 支持指定具体模型版本
+
+**API 密钥获取**：
+- OpenAI: https://platform.openai.com/api-keys
+- Anthropic: https://console.anthropic.com/settings/keys
+
+**配置优先级**：
+1. UI 中配置的活跃提供商（最高优先级）
+2. 环境变量中的 `OPENAI_API_KEY` 或 `ANTHROPIC_API_KEY`
+3. 内置 Manus AI 的 `BUILT_IN_FORGE_API_KEY`
 
 **注意**：
-- 如果不配置任何 AI 提供商，点击"开始讨论"时会提示错误
-- 系统会优先使用 UI 中配置的活跃提供商，其次使用内置 Manus AI
-- 查看 `.env.example` 了解完整配置选项
+- 如果不配置任何 AI 提供商，点击"开始讨论"时会显示警告
+- 查看 `.env.example` 了解完整配置选项和示例
 
 ---
 

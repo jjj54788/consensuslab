@@ -138,12 +138,12 @@ export default function AIProviderSettings() {
                       <Label htmlFor="provider">提供商类型</Label>
                       <Select
                         value={formData.provider}
-                        onValueChange={(value: any) =>
+                        onValueChange={(value: "manus" | "openai" | "anthropic" | "custom") =>
                           setFormData({ ...formData, provider: value })
                         }
                       >
-                        <SelectTrigger>
-                          <SelectValue />
+                        <SelectTrigger id="provider">
+                          <SelectValue placeholder="选择提供商类型" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="manus">Manus (内置)</SelectItem>

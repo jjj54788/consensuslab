@@ -133,14 +133,41 @@ async function scoreWithAgent(
   userId: number
 ): Promise<ScoringResult> {
   try {
-    // Get user's active AI provider config
+    // Get user's active AI provider config with fallback to environment variables
     const providerConfig = await getActiveAIProvider(userId);
-    
+
+    // Determine provider and API key with fallback to environment variables
+    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
+    let apiKey: string | undefined = undefined;
+    let baseURL: string | undefined = undefined;
+    let model: string | undefined = undefined;
+
+    if (providerConfig) {
+      // User has configured a custom provider
+      provider = providerConfig.provider;
+      apiKey = providerConfig.apiKey || undefined;
+      baseURL = providerConfig.baseURL || undefined;
+      model = providerConfig.model || undefined;
+    } else {
+      // No custom provider configured, check environment variables
+      const { ENV } = await import("./_core/env");
+
+      if (ENV.openaiApiKey) {
+        provider = "openai";
+        apiKey = ENV.openaiApiKey;
+      } else if (ENV.anthropicApiKey) {
+        provider = "anthropic";
+        apiKey = ENV.anthropicApiKey;
+      } else if (ENV.forgeApiKey) {
+        provider = "manus";
+      }
+    }
+
     const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
+      provider,
+      apiKey,
+      baseURL,
+      model,
     };
 
     const response = await AIProviderService.chat(

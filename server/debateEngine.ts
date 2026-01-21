@@ -79,11 +79,43 @@ Be concise but impactful. (100-150 words)`}`;
     // Get user's active AI provider config
     const providerConfig = await getActiveAIProvider(userId);
 
+    // Determine provider and API key with fallback to environment variables
+    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
+    let apiKey: string | undefined = undefined;
+    let baseURL: string | undefined = undefined;
+    let model: string | undefined = undefined;
+
+    if (providerConfig) {
+      // User has configured a custom provider
+      provider = providerConfig.provider;
+      apiKey = providerConfig.apiKey || undefined;
+      baseURL = providerConfig.baseURL || undefined;
+      model = providerConfig.model || undefined;
+    } else {
+      // No custom provider configured, check environment variables
+      const { ENV } = await import("./_core/env");
+
+      if (ENV.openaiApiKey) {
+        console.log("[DebateEngine] Using OpenAI API key from environment variables");
+        provider = "openai";
+        apiKey = ENV.openaiApiKey;
+      } else if (ENV.anthropicApiKey) {
+        console.log("[DebateEngine] Using Anthropic API key from environment variables");
+        provider = "anthropic";
+        apiKey = ENV.anthropicApiKey;
+      } else if (ENV.forgeApiKey) {
+        console.log("[DebateEngine] Using built-in Manus Forge API");
+        provider = "manus";
+      } else {
+        console.warn("[DebateEngine] No AI provider configured - neither custom config nor environment variables found");
+      }
+    }
+
     const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
+      provider,
+      apiKey,
+      baseURL,
+      model,
     };
 
     console.log(`[DebateEngine] Generating response for ${agent.name} using provider: ${aiConfig.provider}`);
@@ -103,9 +135,13 @@ Be concise but impactful. (100-150 words)`}`;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Provide helpful error message if AI provider is not configured
-    if (errorMessage.includes("OPENAI_API_KEY is not configured") || errorMessage.includes("API key")) {
+    if (errorMessage.includes("OPENAI_API_KEY is not configured") ||
+        errorMessage.includes("API key is required") ||
+        errorMessage.includes("API key")) {
       throw new Error(
-        "AI Provider not configured. Please add your OpenAI or Claude API key in Settings > AI Provider Settings before starting a debate."
+        "AI Provider not configured. Please either: " +
+        "1) Add OPENAI_API_KEY or ANTHROPIC_API_KEY to your .env file, OR " +
+        "2) Configure your API key in Settings > AI Provider Settings"
       );
     }
 
@@ -291,14 +327,44 @@ ${conversation}${highlightsContext}
 注意：bestViewpoint、mostInnovative和goldenQuotes中都必须包含发言者的智能体名称，格式为"智能体名称：内容"。`;
 
   try {
-    // Get user's active AI provider config
+    // Get user's active AI provider config with fallback to environment variables
     const providerConfig = await getActiveAIProvider(userId);
 
+    // Determine provider and API key with fallback to environment variables
+    let provider: "manus" | "openai" | "anthropic" | "custom" = "manus";
+    let apiKey: string | undefined = undefined;
+    let baseURL: string | undefined = undefined;
+    let model: string | undefined = undefined;
+
+    if (providerConfig) {
+      // User has configured a custom provider
+      provider = providerConfig.provider;
+      apiKey = providerConfig.apiKey || undefined;
+      baseURL = providerConfig.baseURL || undefined;
+      model = providerConfig.model || undefined;
+    } else {
+      // No custom provider configured, check environment variables
+      const { ENV } = await import("./_core/env");
+
+      if (ENV.openaiApiKey) {
+        console.log("[DebateEngine] Using OpenAI API key from environment variables for summary");
+        provider = "openai";
+        apiKey = ENV.openaiApiKey;
+      } else if (ENV.anthropicApiKey) {
+        console.log("[DebateEngine] Using Anthropic API key from environment variables for summary");
+        provider = "anthropic";
+        apiKey = ENV.anthropicApiKey;
+      } else if (ENV.forgeApiKey) {
+        console.log("[DebateEngine] Using built-in Manus Forge API for summary");
+        provider = "manus";
+      }
+    }
+
     const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
+      provider,
+      apiKey,
+      baseURL,
+      model,
     };
 
     console.log(`[DebateEngine] Generating summary using provider: ${aiConfig.provider}`);
