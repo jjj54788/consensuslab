@@ -31,6 +31,31 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Log environment configuration at startup
+  console.log("\n========================================");
+  console.log("ConsensusLab Server Starting...");
+  console.log("========================================");
+  console.log("Environment Configuration:");
+  console.log(`- NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+  console.log(`- PORT: ${process.env.PORT || "3000"}`);
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? "✓ Configured" : "✗ Missing"}`);
+  console.log("\nAI Provider Configuration:");
+  console.log(`- OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? "✓ Configured" : "✗ Not set"}`);
+  console.log(`- ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? "✓ Configured" : "✗ Not set"}`);
+  console.log(`- BUILT_IN_FORGE_API_KEY: ${process.env.BUILT_IN_FORGE_API_KEY ? "✓ Configured" : "✗ Not set"}`);
+
+  const hasAnyProvider = !!(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.BUILT_IN_FORGE_API_KEY);
+  if (hasAnyProvider) {
+    console.log("\n✓ At least one AI provider is configured");
+  } else {
+    console.log("\n⚠ WARNING: No AI provider configured!");
+    console.log("  Please add one of the following to your .env file:");
+    console.log("  - OPENAI_API_KEY=sk-...");
+    console.log("  - ANTHROPIC_API_KEY=sk-ant-...");
+    console.log("  - BUILT_IN_FORGE_API_KEY=...");
+  }
+  console.log("========================================\n");
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

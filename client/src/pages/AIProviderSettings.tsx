@@ -145,10 +145,10 @@ export default function AIProviderSettings() {
                         <SelectTrigger id="provider">
                           <SelectValue placeholder="选择提供商类型" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="manus">Manus (内置)</SelectItem>
+                        <SelectContent position="popper" sideOffset={5}>
                           <SelectItem value="openai">OpenAI</SelectItem>
-                          <SelectItem value="anthropic">Anthropic</SelectItem>
+                          <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
+                          <SelectItem value="manus">Manus (内置)</SelectItem>
                           <SelectItem value="custom">自定义</SelectItem>
                         </SelectContent>
                       </Select>

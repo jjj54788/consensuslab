@@ -87,6 +87,7 @@ Be concise but impactful. (100-150 words)`}`;
 
     if (providerConfig) {
       // User has configured a custom provider
+      console.log(`[DebateEngine] Using user-configured provider: ${providerConfig.provider}`);
       provider = providerConfig.provider;
       apiKey = providerConfig.apiKey || undefined;
       baseURL = providerConfig.baseURL || undefined;
@@ -95,19 +96,32 @@ Be concise but impactful. (100-150 words)`}`;
       // No custom provider configured, check environment variables
       const { ENV } = await import("./_core/env");
 
-      if (ENV.openaiApiKey) {
-        console.log("[DebateEngine] Using OpenAI API key from environment variables");
+      console.log("[DebateEngine] No user provider configured, checking environment variables...");
+      console.log("[DebateEngine] Environment check:", {
+        hasOpenAI: !!ENV.openaiApiKey && ENV.openaiApiKey.length > 0,
+        hasAnthropic: !!ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0,
+        hasForge: !!ENV.forgeApiKey && ENV.forgeApiKey.length > 0,
+      });
+
+      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using OpenAI API key from OPENAI_API_KEY environment variable");
         provider = "openai";
         apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey) {
-        console.log("[DebateEngine] Using Anthropic API key from environment variables");
+      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using Anthropic API key from ANTHROPIC_API_KEY environment variable");
         provider = "anthropic";
         apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey) {
-        console.log("[DebateEngine] Using built-in Manus Forge API");
+      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using built-in Manus Forge API from BUILT_IN_FORGE_API_KEY");
         provider = "manus";
+        apiKey = ENV.forgeApiKey;
       } else {
-        console.warn("[DebateEngine] No AI provider configured - neither custom config nor environment variables found");
+        console.error("[DebateEngine] ✗ No AI provider configured!");
+        console.error("[DebateEngine] Please set one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY in .env file");
+        throw new Error(
+          "No AI provider configured. Please add one of these to your .env file: " +
+          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
+        );
       }
     }
 
@@ -338,6 +352,7 @@ ${conversation}${highlightsContext}
 
     if (providerConfig) {
       // User has configured a custom provider
+      console.log(`[DebateEngine] Using user-configured provider for summary: ${providerConfig.provider}`);
       provider = providerConfig.provider;
       apiKey = providerConfig.apiKey || undefined;
       baseURL = providerConfig.baseURL || undefined;
@@ -346,17 +361,24 @@ ${conversation}${highlightsContext}
       // No custom provider configured, check environment variables
       const { ENV } = await import("./_core/env");
 
-      if (ENV.openaiApiKey) {
-        console.log("[DebateEngine] Using OpenAI API key from environment variables for summary");
+      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using OpenAI for summary from OPENAI_API_KEY");
         provider = "openai";
         apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey) {
-        console.log("[DebateEngine] Using Anthropic API key from environment variables for summary");
+      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using Anthropic for summary from ANTHROPIC_API_KEY");
         provider = "anthropic";
         apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey) {
-        console.log("[DebateEngine] Using built-in Manus Forge API for summary");
+      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
+        console.log("[DebateEngine] ✓ Using Manus Forge for summary from BUILT_IN_FORGE_API_KEY");
         provider = "manus";
+        apiKey = ENV.forgeApiKey;
+      } else {
+        console.error("[DebateEngine] ✗ No AI provider for summary generation!");
+        throw new Error(
+          "No AI provider configured. Please add one of these to your .env file: " +
+          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
+        );
       }
     }
 

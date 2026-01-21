@@ -152,14 +152,20 @@ async function scoreWithAgent(
       // No custom provider configured, check environment variables
       const { ENV } = await import("./_core/env");
 
-      if (ENV.openaiApiKey) {
+      if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
         provider = "openai";
         apiKey = ENV.openaiApiKey;
-      } else if (ENV.anthropicApiKey) {
+      } else if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
         provider = "anthropic";
         apiKey = ENV.anthropicApiKey;
-      } else if (ENV.forgeApiKey) {
+      } else if (ENV.forgeApiKey && ENV.forgeApiKey.length > 0) {
         provider = "manus";
+        apiKey = ENV.forgeApiKey;
+      } else {
+        throw new Error(
+          "No AI provider configured for scoring. Please add one of these to your .env file: " +
+          "OPENAI_API_KEY, ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY"
+        );
       }
     }
 
