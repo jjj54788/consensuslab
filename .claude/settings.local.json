@@ -7,7 +7,10 @@
       "Bash(npm install:*)",
       "Bash(npx tsx:*)",
       "Bash(pm2 env:*)",
-      "Bash(pm2 show:*)"
+      "Bash(pm2 show:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ]
   }
 }
