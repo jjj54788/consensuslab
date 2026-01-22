@@ -102,7 +102,8 @@ export async function executeDebateRound(
   context: DebateContext,
   userId: number,
   onAgentStatusChange?: (agentId: string, status: AgentStatus) => void,
-  onMessageCreated?: (message: Message) => void
+  onMessageCreated?: (message: Message) => void,
+  onMessageUpdated?: (message: Message) => void
 ): Promise<Message[]> {
   console.log(`[DebateEngine] ===== executeDebateRound called for round ${context.currentRound} =====`);
   const roundMessages: Message[] = [];
@@ -189,6 +190,17 @@ export async function executeDebateRound(
           scoringReasons: scores.scoringReasons,
         });
         console.log(`[DebateEngine] Successfully updated message ${message.id} with scores`);
+
+        // Notify client about the score update
+        const updatedMessage: Message = {
+          ...message,
+          logicScore: scores.logicScore,
+          innovationScore: scores.innovationScore,
+          expressionScore: scores.expressionScore,
+          totalScore: scores.totalScore,
+          scoringReasons: scores.scoringReasons,
+        };
+        onMessageUpdated?.(updatedMessage);
       }).catch((error) => {
         console.error(`[DebateEngine] Error scoring message ${message.id}:`, error);
         console.error(`[DebateEngine] Error stack:`, error.stack);
@@ -321,6 +333,7 @@ export async function runDebateSession(
   userId: number,
   onAgentStatusChange?: (agentId: string, status: AgentStatus) => void,
   onMessageCreated?: (message: Message) => void,
+  onMessageUpdated?: (message: Message) => void,
   onRoundComplete?: (round: number) => void
 ): Promise<void> {
   try {
@@ -332,7 +345,7 @@ export async function runDebateSession(
       context.currentRound = round;
       await updateDebateSession(sessionId, { currentRound: round });
 
-      await executeDebateRound(sessionId, context, userId, onAgentStatusChange, onMessageCreated);
+      await executeDebateRound(sessionId, context, userId, onAgentStatusChange, onMessageCreated, onMessageUpdated);
 
       onRoundComplete?.(round);
     }

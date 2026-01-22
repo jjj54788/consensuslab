@@ -73,6 +73,11 @@ export function setupWebSocket(httpServer: HTTPServer) {
           (message: Message) => {
             io.to(`debate-${sessionId}`).emit("new-message", message);
           },
+          // onMessageUpdated
+          (message: Message) => {
+            console.log(`[WebSocket] Emitting message-updated for message ${message.id} with scores`);
+            io.to(`debate-${sessionId}`).emit("message-updated", message);
+          },
           // onRoundComplete
           (round: number) => {
             io.to(`debate-${sessionId}`).emit("round-complete", { round });

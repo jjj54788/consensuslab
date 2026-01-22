@@ -120,6 +120,15 @@ export function useDebateSocket(sessionId: string | null) {
       setMessages((prev) => [...prev, message]);
     });
 
+    newSocket.on("message-updated", (updatedMessage: Message) => {
+      console.log("[WebSocket] Received message-updated:", updatedMessage.id, "with scores:", updatedMessage.totalScore);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === updatedMessage.id ? updatedMessage : msg
+        )
+      );
+    });
+
     newSocket.on("round-complete", (data: { round: number }) => {
       setCurrentRound(data.round);
     });
