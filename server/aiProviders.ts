@@ -1,5 +1,22 @@
 // Standalone version - no Manus LLM dependency
 import { ENV } from "./_core/env";
+import { ProxyAgent, setGlobalDispatcher } from "undici";
+
+// Configure proxy if available
+const proxy =
+  process.env.HTTPS_PROXY ||
+  process.env.https_proxy ||
+  process.env.HTTP_PROXY ||
+  process.env.http_proxy;
+
+if (proxy) {
+  console.log("[AIProviderService] Using proxy:", proxy);
+  try {
+    setGlobalDispatcher(new ProxyAgent(proxy));
+  } catch (error) {
+    console.error("[AIProviderService] Failed to set proxy:", error);
+  }
+}
 
 export type AIProvider = "manus" | "openai" | "anthropic" | "custom";
 
@@ -119,6 +136,7 @@ export class AIProviderService {
         model,
         messages,
       }),
+      signal: AbortSignal.timeout(60000), // 60 second timeout
     });
 
     if (!response.ok) {
@@ -174,6 +192,7 @@ export class AIProviderService {
           content: msg.content,
         })),
       }),
+      signal: AbortSignal.timeout(60000), // 60 second timeout
     });
 
     if (!response.ok) {
@@ -221,6 +240,7 @@ export class AIProviderService {
         model: config.model || "default",
         messages,
       }),
+      signal: AbortSignal.timeout(60000), // 60 second timeout
     });
 
     if (!response.ok) {
