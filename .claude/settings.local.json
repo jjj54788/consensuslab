@@ -10,7 +10,8 @@
       "Bash(pm2 show:*)",
       "Bash(npm run db:push:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

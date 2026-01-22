@@ -1,4 +1,5 @@
 // Standalone version - no Manus LLM dependency
+import { ENV } from "./_core/env";
 
 export type AIProvider = "manus" | "openai" | "anthropic" | "custom";
 
@@ -28,6 +29,38 @@ export interface ChatCompletionResponse {
  * Supports multiple AI providers: Manus built-in, OpenAI, Anthropic, and custom APIs
  */
 export class AIProviderService {
+  /**
+   * Get AI provider configuration from environment variables
+   * This reads OPENAI_API_KEY or ANTHROPIC_API_KEY from .env
+   */
+  static getProviderFromEnv(): AIProviderConfig {
+    // Try OpenAI first
+    if (ENV.openaiApiKey && ENV.openaiApiKey.length > 0) {
+      console.log("[AIProviderService] Using OpenAI from OPENAI_API_KEY environment variable");
+      return {
+        provider: "openai",
+        apiKey: ENV.openaiApiKey,
+        model: "gpt-4o-mini", // Default model
+      };
+    }
+
+    // Try Anthropic/Claude
+    if (ENV.anthropicApiKey && ENV.anthropicApiKey.length > 0) {
+      console.log("[AIProviderService] Using Anthropic from ANTHROPIC_API_KEY environment variable");
+      return {
+        provider: "anthropic",
+        apiKey: ENV.anthropicApiKey,
+        model: "claude-3-5-sonnet-20241022", // Default model
+      };
+    }
+
+    // No API key found
+    throw new Error(
+      "No AI provider API key found in environment variables. " +
+      "Please set OPENAI_API_KEY or ANTHROPIC_API_KEY in your .env file or environment."
+    );
+  }
+
   /**
    * Invoke AI completion with the specified provider
    */

@@ -2,7 +2,6 @@ import { nanoid } from "nanoid";
 import { Agent, Message } from "../drizzle/schema";
 import { createMessage, getSessionMessages, updateDebateSession, updateMessage } from "./db";
 import { AIProviderService, AIProviderConfig } from "./aiProviders";
-import { getActiveAIProvider } from "./aiProviderDb";
 import { scoreMessage } from "./scoringEngine";
 
 export type AgentStatus = "idle" | "thinking" | "speaking" | "waiting";
@@ -76,22 +75,8 @@ ${previousMessages.length === 0
 Be concise but impactful. (100-150 words)`}`;
 
   try {
-    // Get user's active AI provider config
-    const providerConfig = await getActiveAIProvider(userId);
-    
-    // Standalone version: require user to configure API key
-    if (!providerConfig) {
-      throw new Error(
-        "No AI provider configured. Please configure your OpenAI or Claude API key in AI Settings before starting a debate."
-      );
-    }
-    
-    const aiConfig: AIProviderConfig = {
-      provider: providerConfig.provider,
-      apiKey: providerConfig.apiKey || undefined,
-      baseURL: providerConfig.baseURL || undefined,
-      model: providerConfig.model || undefined,
-    };
+    // Get AI provider config from environment variables
+    const aiConfig = AIProviderService.getProviderFromEnv();
 
     const response = await AIProviderService.chat(
       [
@@ -286,22 +271,8 @@ ${conversation}${highlightsContext}
 注意：bestViewpoint、mostInnovative和goldenQuotes中都必须包含发言者的智能体名称，格式为"智能体名称：内容"。`;
 
   try {
-    // Get user's active AI provider config
-    const providerConfig = await getActiveAIProvider(userId);
-    
-    // Standalone version: require user to configure API key
-    if (!providerConfig) {
-      throw new Error(
-        "No AI provider configured. Please configure your OpenAI or Claude API key in AI Settings before starting a debate."
-      );
-    }
-    
-    const aiConfig: AIProviderConfig = {
-      provider: providerConfig.provider,
-      apiKey: providerConfig.apiKey || undefined,
-      baseURL: providerConfig.baseURL || undefined,
-      model: providerConfig.model || undefined,
-    };
+    // Get AI provider config from environment variables
+    const aiConfig = AIProviderService.getProviderFromEnv();
 
     const response = await AIProviderService.chat(
       [

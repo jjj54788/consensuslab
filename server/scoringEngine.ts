@@ -1,7 +1,6 @@
 import { Agent, Message } from "../drizzle/schema";
 import { getAgentById } from "./db";
 import { AIProviderService, AIProviderConfig } from "./aiProviders";
-import { getActiveAIProvider } from "./aiProviderDb";
 
 interface ScoringResult {
   score: number;
@@ -133,15 +132,8 @@ async function scoreWithAgent(
   userId: number
 ): Promise<ScoringResult> {
   try {
-    // Get user's active AI provider config
-    const providerConfig = await getActiveAIProvider(userId);
-    
-    const aiConfig: AIProviderConfig = {
-      provider: providerConfig?.provider || "manus",
-      apiKey: providerConfig?.apiKey || undefined,
-      baseURL: providerConfig?.baseURL || undefined,
-      model: providerConfig?.model || undefined,
-    };
+    // Get AI provider config from environment variables
+    const aiConfig = AIProviderService.getProviderFromEnv();
 
     const response = await AIProviderService.chat(
       [
