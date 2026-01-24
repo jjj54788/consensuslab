@@ -7,6 +7,7 @@ Connects to remote server via SSH and runs deployment script
 import os
 import sys
 import time
+import json
 import queue
 import threading
 from datetime import datetime
@@ -87,8 +88,9 @@ def execute_deployment():
         log_message("✅ SSH连接成功！", "SUCCESS")
         log_message(f"切换目录: {DEPLOY_PATH}", "INFO")
 
-        # Execute deployment script
-        command = f"cd {DEPLOY_PATH} && {DEPLOY_SCRIPT}"
+        # Execute deployment script with bash login shell to load full environment
+        # This ensures pnpm and other tools are in PATH
+        command = f"bash -l -c 'cd {DEPLOY_PATH} && {DEPLOY_SCRIPT}'"
         log_message(f"执行命令: {command}", "INFO")
         log_message("=" * 60, "INFO")
 
@@ -192,7 +194,8 @@ def stream_logs():
             try:
                 # Wait for new log message with timeout
                 log_entry = log_queue.get(timeout=1)
-                yield f"data: {jsonify(log_entry).get_data(as_text=True)}\n\n"
+                # Use json.dumps instead of jsonify to avoid Flask context issues
+                yield f"data: {json.dumps(log_entry)}\n\n"
             except queue.Empty:
                 # Send heartbeat to keep connection alive
                 yield f": heartbeat\n\n"
